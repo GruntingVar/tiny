@@ -7,12 +7,19 @@ import (
 type Handle func(Context)
 
 type routeTree struct {
-	kind       string // "root", "path", "param", "dir"
-	name       string
-	preHandles []Handle
-	handles    []Handle
-	endHandles []Handle
-	subTrees   []*routeTree
+	kind     string // "root", "path", "param", "dir"
+	name     string
+	handles  []Handle
+	subTrees []*routeTree
+}
+
+func newTree(kind string, name string) *routeTree {
+	return &routeTree{
+		kind:     kind,
+		name:     name,
+		handles:  []Handle{},
+		subTrees: []*routeTree{},
+	}
 }
 
 // 深度优先递归查找
@@ -70,5 +77,64 @@ func (rt *routeTree) find(path string) (tree *routeTree, params map[string]strin
 	paths := strings.Split(path, "/")
 	params = make(map[string]string)
 	tree, params, found = doFind(rt, paths, params)
+	return
+}
+
+// 如果不存在路径，则添加。返回叶子节点
+func (rt *routeTree) addNode(paths []string) (tree *routeTree) {
+	var newrt *routeTree
+	if strings.HasPrefix(paths[0], ":") {
+		exists := false
+		for _, subTree := range rt.subTrees {
+			if subTree.kind == "param" && subTree.name == paths[0] {
+				newrt = subTree
+				exists = true
+				break
+			}
+		}
+		if exists == false {
+			name := strings.Replace(paths[0], ":", "", 1)
+			newrt = newTree("param", name)
+			rt.subTrees = append(rt.subTrees, newrt)
+		}
+	} else if paths[0] == "" {
+		exists := false
+		for _, subTree := range rt.subTrees {
+			if subTree.kind == "dir" {
+				newrt = rt
+				exists = true
+				break
+			}
+		}
+		if exists == false {
+			newrt = rt
+			rt.subTrees = append(rt.subTrees, newTree("dir", "dir"))
+		}
+	} else {
+		exists := false
+		for _, subTree := range rt.subTrees {
+			if subTree.kind == "path" && subTree.name == paths[0] {
+				newrt = subTree
+				exists = true
+				break
+			}
+		}
+		if exists == false {
+			newrt = newTree("path", paths[0])
+			rt.subTrees = append(rt.subTrees, newrt)
+		}
+	}
+	if len(paths) > 1 {
+		tree = newrt.addNode(paths[1:])
+	} else {
+		tree = newrt
+	}
+	return
+}
+
+// 添加路由，path必须以"/"开头，如"/blog"
+func (rt *routeTree) addRoute(path string) (tree *routeTree) {
+	paths := strings.Split(path, "/")
+	tree = rt.addNode(paths[1:])
 	return
 }

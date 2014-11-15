@@ -4,36 +4,34 @@ import (
 	"testing"
 )
 
-func createTree(kind string, name string) *routeTree {
-	return &routeTree{
-		kind:     kind,
-		name:     name,
-		subTrees: []*routeTree{},
-	}
-}
-
 func createTestTree() *routeTree {
-	root := createTree("root", "root")
-	blogs := createTree("path", "blogs")
-	blogId := createTree("param", "id")
-	stars := createTree("path", "stars")
-	users := createTree("path", "users")
-	userId := createTree("param", "id")
-	public := createTree("path", "public")
-	dir := createTree("dir", "dir")
+	root := newTree("root", "root")
 
-	root.subTrees = append(root.subTrees, blogs)
-	root.subTrees = append(root.subTrees, users)
-	root.subTrees = append(root.subTrees, public)
-
-	blogs.subTrees = append(blogs.subTrees, blogId)
-	blogId.subTrees = append(blogId.subTrees, stars)
-
-	users.subTrees = append(users.subTrees, userId)
-
-	public.subTrees = append(public.subTrees, dir)
+	root.addRoute("/public/")
+	root.addRoute("/blogs/:id/stars")
+	root.addRoute("/users/:id")
 
 	return root
+}
+
+func Test_AddRoute(t *testing.T) {
+	root := newTree("root", "root")
+
+	tree := root.addRoute("/public/")
+	if tree.name != "public" && tree.kind != "path" {
+		t.Error("添加 /public/ 时返回错误的树")
+	}
+
+	tree = root.addRoute("/blogs/:id/stars")
+	if tree.name != "stars" && tree.kind != "path" {
+		t.Error("添加 /blogs/:id/stars 时返回错误的树")
+	}
+
+	tree = root.addRoute("/blogs/:id")
+	if tree.name != "id" && tree.kind != "param" {
+		t.Error("添加 /blogs/:id 时返回错误的树")
+	}
+
 }
 
 func Test_Find(t *testing.T) {
@@ -45,6 +43,15 @@ func Test_Find(t *testing.T) {
 	} else {
 		if tree.name != "public" {
 			t.Error("匹配 /public/ 时匹配到错误的树")
+		}
+	}
+
+	tree, params, found = root.find("/public/test.png")
+	if found == false {
+		t.Error("匹配 /public/test.png 失败")
+	} else {
+		if tree.name != "public" {
+			t.Error("匹配 /public/test.png 时匹配到错误的树")
 		}
 	}
 
