@@ -52,7 +52,7 @@ func doFind(rt *routeTree, paths []string, params map[string]string) (tree *rout
 			// pathsLen > 1
 			var subParams map[string]string
 			for _, subTree := range rt.subTrees {
-				if pathsLen == 2 && subTree.kind == "dir" {
+				if subTree.kind == "dir" {
 					tree = rt
 					found = true
 					return

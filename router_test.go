@@ -55,6 +55,15 @@ func Test_Find(t *testing.T) {
 		}
 	}
 
+	tree, params, found = root.find("/public/img/test.png")
+	if found == false {
+		t.Error("匹配 /public/img/test.png 失败")
+	} else {
+		if tree.name != "public" {
+			t.Error("匹配 /public/img/test.png 时匹配到错误的树")
+		}
+	}
+
 	tree, params, found = root.find("/blogs")
 	if found == false {
 		t.Error("匹配 /blogs 失败")
