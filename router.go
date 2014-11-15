@@ -9,7 +9,7 @@ type Handle func(Context)
 type routeTree struct {
 	kind     string // "root", "path", "param", "dir"
 	name     string
-	handles  []Handle
+	handles  map[string][]Handle
 	subTrees []*routeTree
 }
 
@@ -17,7 +17,7 @@ func newTree(kind string, name string) *routeTree {
 	return &routeTree{
 		kind:     kind,
 		name:     name,
-		handles:  []Handle{},
+		handles:  make(map[string][]Handle),
 		subTrees: []*routeTree{},
 	}
 }
@@ -137,4 +137,52 @@ func (rt *routeTree) addRoute(path string) (tree *routeTree) {
 	paths := strings.Split(path, "/")
 	tree = rt.addNode(paths[1:])
 	return
+}
+
+type router struct {
+	routeTree *routeTree
+}
+
+func newRouter() *router {
+	return &router{
+		routeTree: newTree("root", "root"),
+	}
+}
+
+func (r *router) addRoute(method string, path string, handles []Handle) {
+	method = strings.ToUpper(method)
+	tree := r.routeTree.addRoute(path)
+	tree.handles[method] = handles
+}
+
+func (r *router) All(path string, handles ...Handle) {
+	r.addRoute("ALL", path, handles)
+}
+
+func (r *router) Post(path string, handles ...Handle) {
+	r.addRoute("POST", path, handles)
+}
+
+func (r *router) Get(path string, handles ...Handle) {
+	r.addRoute("GET", path, handles)
+}
+
+func (r *router) Put(path string, handles ...Handle) {
+	r.addRoute("PUT", path, handles)
+}
+
+func (r *router) Patch(path string, handles ...Handle) {
+	r.addRoute("PATCH", path, handles)
+}
+
+func (r *router) Delete(path string, handles ...Handle) {
+	r.addRoute("DELETE", path, handles)
+}
+
+func (r *router) Head(path string, handles ...Handle) {
+	r.addRoute("HEAD", path, handles)
+}
+
+func (r *router) Options(path string, handles ...Handle) {
+	r.addRoute("OPTIONS", path, handles)
 }

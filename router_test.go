@@ -94,3 +94,43 @@ func Test_Find(t *testing.T) {
 	}
 
 }
+
+func Test_Router(t *testing.T) {
+	router := newRouter()
+	handle := func(ctx Context) {}
+	router.All("/users/123", handle)
+	router.Post("/users/123", handle, handle)
+	router.Get("/users/123", handle)
+	router.Put("/users/123", handle)
+	router.Patch("/users/123", handle)
+	router.Delete("/users/123", handle)
+	router.Head("/users/123", handle)
+	router.Options("/users/123", handle)
+	tree, _, _ := router.routeTree.find("/users/123")
+
+	if len(tree.handles["ALL"]) != 1 {
+		t.Error("router.All 错误")
+	}
+	if len(tree.handles["POST"]) != 2 {
+		t.Error("router.Post 错误, 增加多个handle时可能失败了")
+	}
+	if len(tree.handles["GET"]) != 1 {
+		t.Error("router.Get 错误")
+	}
+	if len(tree.handles["PUT"]) != 1 {
+		t.Error("router.Put 错误")
+	}
+	if len(tree.handles["PATCH"]) != 1 {
+		t.Error("router.Patch 错误")
+	}
+	if len(tree.handles["DELETE"]) != 1 {
+		t.Error("router.Delete 错误")
+	}
+	if len(tree.handles["HEAD"]) != 1 {
+		t.Error("router.Head 错误")
+	}
+	if len(tree.handles["OPTIONS"]) != 1 {
+		t.Error("router.Options 错误")
+	}
+
+}

@@ -5,8 +5,9 @@ import (
 )
 
 type Context struct {
-	Req  *http.Request
-	Res  http.ResponseWriter
-	Data map[string]interface{}
-	next bool
+	Req    *http.Request
+	Res    http.ResponseWriter
+	Params map[string]string
+	Data   map[string]interface{}
+	next   bool
 }
