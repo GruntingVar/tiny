@@ -9,25 +9,27 @@ func main() {
 	app := tiny.New()
 
 	app.Prepend(func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "pre1")
+		fmt.Println("pre1")
 		ctx.Next()
 	})
 
 	app.Prepend(func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "pre2")
+		fmt.Println("pre2")
 	})
 
 	app.Get("/users/:id", func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "your id is", ctx.Params["id"])
+		ctx.Text(200, "your id is"+ctx.Params["id"])
 		ctx.Data["test"] = "hello"
 		ctx.Next()
 	}, func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "I'm second handle")
-		fmt.Fprintln(ctx.Res, ctx.Data["test"])
+		fmt.Println("I'm second handle")
+		fmt.Println(ctx.Data["test"])
 	})
 
 	app.Get("/blogs/:id", func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "blog id is", ctx.Params["id"])
+		ctx.Json(200, map[string]interface{}{
+			"id": ctx.Params["id"],
+		})
 	})
 
 	app.Get("/panic", func(ctx *tiny.Context) {
@@ -35,15 +37,15 @@ func main() {
 	})
 
 	app.Append(func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "append1")
+		fmt.Println("append1")
 	})
 
 	app.Append(func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, "append2")
+		fmt.Println("append1")
 	})
 
 	app.ErrorHandle(func(ctx *tiny.Context) {
-		fmt.Fprintln(ctx.Res, ctx.Data["error"])
+		fmt.Println(ctx.Data["error"])
 	})
 
 	app.Run("3000")
