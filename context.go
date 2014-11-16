@@ -11,3 +11,7 @@ type Context struct {
 	Data   map[string]interface{}
 	next   bool
 }
+
+func (ctx *Context) Next() {
+	ctx.next = true
+}

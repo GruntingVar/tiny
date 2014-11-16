@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+var defaultNotFoundHandle = func(ctx *Context) {
+	fmt.Fprintln(ctx.Res, "Not found.")
+}
+
+var defaultErrorHandle = func(ctx *Context) {
+	fmt.Fprintln(ctx.Res, "Error.")
+}
+
 type Tiny struct {
 	*router
 	preHandles     []Handle // 在进行路由匹配之前执行的handle
@@ -15,46 +23,40 @@ type Tiny struct {
 	errorHandle    Handle
 }
 
-var defaultNotFoundHandle = func(ctx Context) {
-	fmt.Fprintln(ctx.Res, "Not found.")
-}
-
-var defaultErrorHandle = func(ctx Context) {
-	fmt.Fprintln(ctx.Res, "Error.")
+func runHandles(ctx *Context, handles []Handle) {
+	ctx.next = false
+	for _, handle := range handles {
+		handle(ctx)
+		if ctx.next == false {
+			return
+		}
+	}
 }
 
 func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	tree, params, found := tiny.router.routeTree.find(r.URL.Path)
-	ctx := Context{r, rw, params, make(map[string]interface{}), false}
+	ctx := &Context{r, rw, params, make(map[string]interface{}), false}
 
-	defer func(ctx Context) {
+	defer func(ctx *Context) {
 		if err := recover(); err != nil {
 			ctx.Data["error"] = err
 			tiny.errorHandle(ctx)
 		}
 	}(ctx)
 
-	for _, preHandle := range tiny.preHandles {
-		preHandle(ctx)
-	}
+	runHandles(ctx, tiny.preHandles)
 
 	if found == true {
 		if tree.handles["ALL"] != nil {
-			for _, handle := range tree.handles["ALL"] {
-				handle(ctx)
-			}
+			runHandles(ctx, tree.handles["ALL"])
 		} else {
-			for _, handle := range tree.handles[strings.ToUpper(r.Method)] {
-				handle(ctx)
-			}
+			runHandles(ctx, tree.handles[strings.ToUpper(r.Method)])
 		}
 	} else {
 		tiny.notFoundHandle(ctx)
 	}
 
-	for _, endHandle := range tiny.endHandles {
-		endHandle(ctx)
-	}
+	runHandles(ctx, tiny.endHandles)
 }
 
 func New() *Tiny {

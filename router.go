@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-type Handle func(Context)
+type Handle func(*Context)
 
 type routeTree struct {
 	kind     string // "root", "path", "param", "dir"
@@ -23,9 +23,8 @@ func newTree(kind string, name string) *routeTree {
 }
 
 // 深度优先递归查找
-func doFind(rt *routeTree, paths []string, params map[string]string) (tree *routeTree, resParams map[string]string, found bool) {
+func doFind(rt *routeTree, paths []string, params map[string]string) (tree *routeTree, found bool) {
 	tree = &routeTree{}
-	resParams = params
 	found = false
 	pathsLen := len(paths)
 	if pathsLen > 0 {
@@ -41,7 +40,7 @@ func doFind(rt *routeTree, paths []string, params map[string]string) (tree *rout
 				return
 			}
 		case "param":
-			resParams[rt.name] = paths[0]
+			params[rt.name] = paths[0]
 			tree = rt
 			found = true
 		default:
@@ -50,16 +49,14 @@ func doFind(rt *routeTree, paths []string, params map[string]string) (tree *rout
 
 		if pathsLen > 1 {
 			// pathsLen > 1
-			var subParams map[string]string
 			for _, subTree := range rt.subTrees {
 				if subTree.kind == "dir" {
 					tree = rt
 					found = true
 					return
 				}
-				tree, subParams, found = doFind(subTree, paths[1:], resParams)
+				tree, found = doFind(subTree, paths[1:], params)
 				if found == true {
-					resParams = subParams
 					return
 				}
 
@@ -76,7 +73,7 @@ func doFind(rt *routeTree, paths []string, params map[string]string) (tree *rout
 func (rt *routeTree) find(path string) (tree *routeTree, params map[string]string, found bool) {
 	paths := strings.Split(path, "/")
 	params = make(map[string]string)
-	tree, params, found = doFind(rt, paths, params)
+	tree, found = doFind(rt, paths, params)
 	return
 }
 

@@ -106,7 +106,7 @@ func Test_Find(t *testing.T) {
 
 func Test_Router(t *testing.T) {
 	router := newRouter()
-	handle := func(ctx Context) {}
+	handle := func(ctx *Context) {}
 	router.All("/users/123", handle)
 	router.Post("/users/123", handle, handle)
 	router.Get("/users/123", handle)
