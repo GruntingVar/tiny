@@ -82,15 +82,15 @@ func (rt *routeTree) addNode(paths []string) (tree *routeTree) {
 	var newrt *routeTree
 	if strings.HasPrefix(paths[0], ":") {
 		exists := false
+		name := strings.Replace(paths[0], ":", "", 1)
 		for _, subTree := range rt.subTrees {
-			if subTree.kind == "param" && subTree.name == paths[0] {
+			if subTree.kind == "param" && subTree.name == name {
 				newrt = subTree
 				exists = true
 				break
 			}
 		}
 		if exists == false {
-			name := strings.Replace(paths[0], ":", "", 1)
 			newrt = newTree("param", name)
 			rt.subTrees = append(rt.subTrees, newrt)
 		}

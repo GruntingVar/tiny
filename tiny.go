@@ -2,7 +2,6 @@ package tiny
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -10,11 +9,11 @@ import (
 )
 
 var defaultNotFoundHandle = func(ctx *Context) {
-	fmt.Fprintln(ctx.Res, "Not found.")
+	ctx.Text(404, "Not Found")
 }
 
 var defaultErrorHandle = func(ctx *Context) {
-	fmt.Fprintln(ctx.Res, "Error.")
+	ctx.Text(500, "Internal Server Error")
 }
 
 type gzipResponseWriter struct {
