@@ -43,18 +43,23 @@ func doFind(rt *routeTree, paths []string, params map[string]string) (tree *rout
 			params[rt.name] = paths[0]
 			tree = rt
 			found = true
+		case "dir":
+			if paths[0] == "" {
+				tree = rt
+				found = true
+			} else {
+				return
+			}
+		case "any":
+			tree = rt
+			found = true
+			return
 		default:
 			return
 		}
-
 		if pathsLen > 1 {
 			// pathsLen > 1
 			for _, subTree := range rt.subTrees {
-				if subTree.kind == "dir" {
-					tree = rt
-					found = true
-					return
-				}
 				tree, found = doFind(subTree, paths[1:], params)
 				if found == true {
 					return
@@ -98,14 +103,27 @@ func (rt *routeTree) addNode(paths []string) (tree *routeTree) {
 		exists := false
 		for _, subTree := range rt.subTrees {
 			if subTree.kind == "dir" {
-				newrt = rt
+				newrt = subTree
 				exists = true
 				break
 			}
 		}
 		if exists == false {
-			newrt = rt
-			rt.subTrees = append(rt.subTrees, newTree("dir", "dir"))
+			newrt = newTree("dir", rt.name)
+			rt.subTrees = append(rt.subTrees, newrt)
+		}
+	} else if paths[0] == "**" {
+		exists := false
+		for _, subTree := range rt.subTrees {
+			if subTree.kind == "any" {
+				newrt = subTree
+				exists = true
+				break
+			}
+		}
+		if exists == false {
+			newrt = newTree("any", rt.name)
+			rt.subTrees = append(rt.subTrees, newrt)
 		}
 	} else {
 		exists := false

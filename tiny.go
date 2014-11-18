@@ -67,10 +67,12 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	runHandles(ctx, tiny.preHandles)
 
 	if found == true {
-		if tree.handles["ALL"] != nil {
+		if len(tree.handles[strings.ToUpper(r.Method)]) > 0 {
+			runHandles(ctx, tree.handles[strings.ToUpper(r.Method)])
+		} else if len(tree.handles["ALL"]) > 0 {
 			runHandles(ctx, tree.handles["ALL"])
 		} else {
-			runHandles(ctx, tree.handles[strings.ToUpper(r.Method)])
+			tiny.notFoundHandle(ctx)
 		}
 	} else {
 		tiny.notFoundHandle(ctx)

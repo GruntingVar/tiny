@@ -50,6 +50,10 @@ func Test_Server(t *testing.T) {
 		ctx.Text(404, "not found")
 	})
 
+	app.All("/blogs/:id", func(ctx *Context) {
+		ctx.Text(200, "blog")
+	})
+
 	app.Get("/users/:id", func(ctx *Context) {
 		ctx.Json(200, map[string]interface{}{
 			"id":   ctx.Params["id"],
@@ -70,6 +74,26 @@ func Test_Server(t *testing.T) {
 
 	app.Delete("/users/:id", func(ctx *Context) {
 		ctx.Text(204, "No Content")
+	})
+
+	app.Patch("/users/:id", func(ctx *Context) {
+		ctx.Text(200, "your id is "+ctx.Params["id"])
+	})
+
+	app.Head("/users/:id", func(ctx *Context) {
+		ctx.Text(200, "your id is "+ctx.Params["id"])
+	})
+
+	app.Options("/users/:id", func(ctx *Context) {
+		ctx.Text(200, "your id is "+ctx.Params["id"])
+	})
+
+	app.Get("/panic", func(ctx *Context) {
+		panic("test")
+	})
+
+	app.Get("/dir/", func(ctx *Context) {
+		ctx.Text(200, "dir")
 	})
 
 	req, res := createReqRes("GET", "/users/123")
@@ -101,5 +125,59 @@ func Test_Server(t *testing.T) {
 	expect(t, res.Code, 204)
 	expect(t, res.Header().Get(contentType), contentText+appendCharset)
 	expect(t, res.Body.String(), "No Content")
+
+	req, res = createReqRes("PATCH", "/users/123")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "your id is 123")
+
+	req, res = createReqRes("HEAD", "/users/123")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "your id is 123")
+
+	req, res = createReqRes("OPTIONS", "/users/123")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "your id is 123")
+
+	req, res = createReqRes("GET", "/blogs/123")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "blog")
+
+	req, res = createReqRes("POST", "/blogs/123")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "blog")
+
+	req, res = createReqRes("GET", "/random/test")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 404)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "not found")
+
+	req, res = createReqRes("GET", "/panic")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 500)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "test")
+
+	req, res = createReqRes("GET", "/dir/")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "dir")
+
+	req, res = createReqRes("GET", "/dir")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 404)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "not found")
 
 }
