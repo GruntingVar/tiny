@@ -1,184 +1,108 @@
 package tiny
 
 import (
+	"reflect"
 	"testing"
 )
 
-func createTestTree() *routeTree {
-	root := newTree("root", "root")
-
-	root.addRoute("/")
-	root.addRoute("/public/")
-	root.addRoute("/static/**")
-	root.addRoute("/blogs/:id/stars")
-	root.addRoute("/users/:id")
-	root.addRoute("/blogs")
-
-	return root
+func itemExpect(t *testing.T, a interface{}, b interface{}, testItem string) {
+	if a != b {
+		t.Errorf("%s: Expected %v (type %v) - Got %v (type %v)", testItem, b, reflect.TypeOf(b), a, reflect.TypeOf(a))
+	}
 }
 
-func Test_AddRoute(t *testing.T) {
-	root := newTree("root", "root")
+func Test_AddAndFind(t *testing.T) {
+	root := createRoot()
 
-	tree := root.addRoute("/images/")
-	if tree.name != "images" && tree.kind != "path" {
-		t.Error("添加 /images/ 时返回错误的节点")
-	}
+	node1 := root.addUrl("/path1")
+	node2 := root.addUrl("/users/:id")
+	node3 := root.addUrl("/users/:id/blogs")
+	node4 := root.addUrl("/users/:id/blogs/:blogId")
+	node5 := root.addUrl("/blogs/:id")
+	node6 := root.addUrl("/dir/")
+	node7 := root.addUrl("/public/**")
 
-	tree = root.addRoute("/blogs/:id/stars")
-	if tree.name != "stars" && tree.kind != "path" {
-		t.Error("添加 /blogs/:id/stars 时返回错误的节点")
-	}
+	found, node, data := root.findUrl("/path1")
+	itemExpect(t, found, true, "find /path1")
+	itemExpect(t, node, node1, "find /path1")
 
-	tree = root.addRoute("/blogs/:id")
-	if tree.name != "id" && tree.kind != "param" {
-		t.Error("添加 /blogs/:id 时返回错误的节点")
-	}
+	found, node, data = root.findUrl("/users/123")
+	itemExpect(t, found, true, "find /users/123")
+	itemExpect(t, data["id"], "123", "find /users/123")
+	itemExpect(t, node, node2, "find /users/123")
 
+	found, node, data = root.findUrl("/users/123/blogs")
+	itemExpect(t, found, true, "find /users/123/blogs")
+	itemExpect(t, data["id"], "123", "find /users/123/blogs")
+	itemExpect(t, node, node3, "find /users/123/blogs")
+
+	found, node, data = root.findUrl("/users/123/blogs/000")
+	itemExpect(t, found, true, "find /users/123/blogs/000")
+	itemExpect(t, data["id"], "123", "find /users/123/blogs/000")
+	itemExpect(t, data["blogId"], "000", "find /users/123/blogs/000")
+	itemExpect(t, node, node4, "find /users/123/blogs/000")
+
+	found, node, data = root.findUrl("/blogs/123")
+	itemExpect(t, found, true, "find /blogs/123")
+	itemExpect(t, data["id"], "123", "find /blogs/123")
+	itemExpect(t, node, node5, "find /blogs/123")
+
+	found, node, data = root.findUrl("/dir/")
+	itemExpect(t, found, true, "find /dir/")
+	itemExpect(t, node, node6, "find /dir/")
+
+	found, node, data = root.findUrl("/public/test.png")
+	itemExpect(t, found, true, "find /public/test.png")
+	itemExpect(t, node, node7, "find /public/test.png")
+
+	found, node, data = root.findUrl("/public/img/test.jpg")
+	itemExpect(t, found, true, "/public/img/test.jpg")
+	itemExpect(t, node, node7, "find /public/img/test.jpg")
+
+	found, _, data = root.findUrl("/nopath")
+	itemExpect(t, found, false, "find /nopath")
 }
 
-func Test_Find(t *testing.T) {
-	root := createTestTree()
-
-	tree, params, found := root.find("/")
-	if found == false {
-		t.Error("匹配 / 失败")
-	} else {
-		if tree.name != "root" {
-			t.Error("匹配 / 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/public/")
-	if found == false {
-		t.Error("匹配 /public/ 失败")
-	} else {
-		if tree.name != "public" {
-			t.Error("匹配 /public/ 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/public")
-	if found == false {
-		t.Error("匹配 /public 失败")
-	} else {
-		if tree.name != "public" {
-			t.Error("匹配 /public 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/public/test.png")
-	if found == true {
-		t.Error("不该匹配到 /public/test.png")
-	}
-
-	tree, params, found = root.find("/static/img/test.png")
-	if found == false {
-		t.Error("匹配 /static/img/test.png 失败")
-	} else {
-		if tree.name != "static" {
-			t.Error("匹配 /static/img/test.png 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/blogs")
-	if found == false {
-		t.Error("匹配 /blogs 失败")
-	} else {
-		if tree.name != "blogs" {
-			t.Error("匹配 /blogs 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/blogs/")
-	if found == false {
-		t.Error("匹配 /blogs/ 失败")
-	} else {
-		if tree.kind != "params" && tree.name != "id" {
-			t.Error("匹配 /blogs/ 时匹配到错误的节点")
-		}
-	}
-
-	tree, params, found = root.find("/blogs/123abc/stars")
-	if found == false {
-		t.Error("匹配 /blogs/123abc/stars 失败")
-	} else {
-		if tree.name != "stars" {
-			t.Error("匹配 /blogs/123abc/stars 时匹配到错误的节点")
-		}
-		if params["id"] != "123abc" {
-			t.Error("匹配 /blogs/123abc/stars 时没能取到正确的参数")
-		}
-	}
-
-	tree, params, found = root.find("/users/abc123")
-	if found == false {
-		t.Error("匹配 /users/abc123 失败")
-	} else {
-		if tree.name != "id" {
-			t.Error("匹配 /users/abc123 时匹配到错误的节点")
-		}
-		if params["id"] != "abc123" {
-			t.Error("匹配 /users/abc123 时没能取到正确的参数")
-		}
-	}
-
-	tree, params, found = root.find("/noexists")
-	if found == true {
-		t.Error("不应该匹配到 /noexists")
-	}
-
-}
-
-func Test_Router(t *testing.T) {
-	router := newRouter()
+func Test_Method(t *testing.T) {
 	handle := func(ctx *Context) {}
-	router.All("/users/:id", handle)
-	router.Post("/users/:id", handle, handle)
-	router.Get("/users/:id", handle)
-	router.Put("/users/:id", handle)
-	router.Patch("/users/:id", handle)
-	router.Delete("/users/:id", handle)
-	router.Head("/users/:id", handle)
-	router.Options("/users/:id", handle)
-	tree, _, _ := router.routeTree.find("/users/:id")
+	oneHandle := []Handle{handle}
+	twoHandles := []Handle{handle, handle}
+	root := createRoot()
 
-	if len(tree.handles["ALL"]) != 1 {
-		t.Error("router.All 错误")
-	}
-	if len(tree.handles["POST"]) != 2 {
-		t.Error("router.Post 错误, 增加多个handle时可能失败了")
-	}
-	if len(tree.handles["GET"]) != 1 {
-		t.Error("router.Get 错误")
-	}
-	if len(tree.handles["PUT"]) != 1 {
-		t.Error("router.Put 错误")
-	}
-	if len(tree.handles["PATCH"]) != 1 {
-		t.Error("router.Patch 错误")
-	}
-	if len(tree.handles["DELETE"]) != 1 {
-		t.Error("router.Delete 错误")
-	}
-	if len(tree.handles["HEAD"]) != 1 {
-		t.Error("router.Head 错误")
-	}
-	if len(tree.handles["OPTIONS"]) != 1 {
-		t.Error("router.Options 错误")
-	}
+	testNode := root.addUrl("/test")
+	uidNode := root.addUrl("/users/:id")
+	staticNode := root.addUrl("/static/**")
+	dirNode := root.addUrl("/dir/")
 
-	router.Get("/blog/:id/stars", handle)
-	router.Post("/blog/:id/stars", handle)
-	tree, _, _ = router.routeTree.find("/blog/:id/stars")
-	if len(tree.handles["GET"]) != 1 {
-		t.Error("/blog/:id/stars handle 错误")
-	}
+	testNode.Get(oneHandle)
+	handles := testNode.getHandles("GET")
+	itemExpect(t, len(handles), 1, "testNode Get")
 
-	router.Get("/static/", handle)
-	tree, _, _ = router.routeTree.find("/static/")
-	if len(tree.handles["GET"]) != 1 {
-		t.Error("/static/ handle 错误")
-	}
+	uidNode.Post(oneHandle)
+	handles = uidNode.getHandles("POST")
+	itemExpect(t, len(handles), 1, "uidNode Post")
 
+	uidNode.Put(twoHandles)
+	handles = uidNode.getHandles("PUT")
+	itemExpect(t, len(handles), 2, "uidNode Put")
+
+	uidNode.Delete(oneHandle)
+	handles = uidNode.getHandles("DELETE")
+	itemExpect(t, len(handles), 1, "uidNode Delete")
+
+	uidNode.Patch(oneHandle)
+	handles = uidNode.getHandles("PATCH")
+	itemExpect(t, len(handles), 1, "uidNode Patch")
+
+	uidNode.Head(oneHandle)
+	handles = uidNode.getHandles("HEAD")
+	itemExpect(t, len(handles), 1, "uidNode Head")
+
+	staticNode.Options(oneHandle)
+	handles = staticNode.getHandles("OPTIONS")
+	itemExpect(t, len(handles), 1, "staticNode Options")
+
+	dirNode.All(oneHandle)
+	handles = dirNode.getHandles("ALL")
+	itemExpect(t, len(handles), 1, "dirNode All")
 }

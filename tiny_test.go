@@ -77,15 +77,15 @@ func Test_Server(t *testing.T) {
 	})
 
 	app.Patch("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"])
+		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
 	})
 
 	app.Head("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"])
+		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
 	})
 
 	app.Options("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"])
+		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
 	})
 
 	app.Get("/panic", func(ctx *Context) {

@@ -6,198 +6,193 @@ import (
 
 type Handle func(*Context)
 
-type routeTree struct {
-	kind     string // "root", "path", "param", "dir"
-	name     string
-	handles  map[string][]Handle
-	subTrees []*routeTree
+type matchData map[string]interface{}
+
+type pathMatcher interface {
+	match(string, matchData) bool
 }
 
-func newTree(kind string, name string) *routeTree {
-	return &routeTree{
-		kind:     kind,
-		name:     name,
-		handles:  make(map[string][]Handle),
-		subTrees: []*routeTree{},
+func newPathMatcher(path string) pathMatcher {
+	switch {
+	case path == "":
+		return &dirNode{}
+	case path == "**":
+		return &anyNode{}
+	case strings.HasPrefix(path, ":"):
+		name := strings.Replace(path, ":", "", 1)
+		return &paramNode{name: name}
+	default:
+		return &pathNode{name: path}
 	}
 }
 
-// 深度优先递归查找
-func doFind(rt *routeTree, paths []string, params map[string]string) (tree *routeTree, found bool) {
-	tree = &routeTree{}
+type rootNode struct {
+}
+
+func (n *rootNode) match(path string, data matchData) bool {
+	return true
+}
+
+type pathNode struct {
+	name string
+}
+
+func (n *pathNode) match(path string, data matchData) bool {
+	return n.name == path
+}
+
+type paramNode struct {
+	name string
+}
+
+func (n *paramNode) match(path string, data matchData) bool {
+	data[n.name] = path
+	return true
+}
+
+type dirNode struct {
+}
+
+func (n *dirNode) match(path string, data matchData) bool {
+	return path == ""
+}
+
+type anyNode struct {
+}
+
+func (n *anyNode) match(path string, data matchData) bool {
+	data["endMatch"] = true
+	return true
+}
+
+type methodHandler struct {
+	handles map[string][]Handle
+}
+
+func newMethodHandler() methodHandler {
+	return methodHandler{make(map[string][]Handle)}
+}
+
+func (mh methodHandler) getHandles(method string) []Handle {
+	if mh.handles[method] != nil {
+		return mh.handles[method]
+	} else {
+		return mh.handles["ALL"]
+	}
+}
+
+func (mh methodHandler) addHandles(method string, handles []Handle) {
+	mh.handles[method] = append(mh.handles[method], handles...)
+}
+
+func (mh methodHandler) Post(handles []Handle) {
+	mh.addHandles("POST", handles)
+}
+
+func (mh methodHandler) Get(handles []Handle) {
+	mh.addHandles("GET", handles)
+}
+
+func (mh methodHandler) Put(handles []Handle) {
+	mh.addHandles("PUT", handles)
+}
+
+func (mh methodHandler) Patch(handles []Handle) {
+	mh.addHandles("PATCH", handles)
+}
+
+func (mh methodHandler) Delete(handles []Handle) {
+	mh.addHandles("DELETE", handles)
+}
+
+func (mh methodHandler) Head(handles []Handle) {
+	mh.addHandles("HEAD", handles)
+}
+
+func (mh methodHandler) Options(handles []Handle) {
+	mh.addHandles("OPTIONS", handles)
+}
+
+func (mh methodHandler) All(handles []Handle) {
+	mh.addHandles("ALL", handles)
+}
+
+type routeNode struct {
+	pathMatcher
+	methodHandler
+	subNodes []*routeNode
+}
+
+func (rn *routeNode) find(paths []string, data matchData) (found bool, node *routeNode) {
+	node = &routeNode{}
 	found = false
-	pathsLen := len(paths)
-	if pathsLen > 0 {
-		switch rt.kind {
-		case "root":
-			tree = rt
-			found = true
-		case "path":
-			if rt.name == paths[0] {
-				tree = rt
-				found = true
-			} else {
+	for _, subNode := range rn.subNodes {
+		found = subNode.match(paths[0], data)
+		if found == true {
+			if len(paths) == 1 {
+				node = subNode
 				return
-			}
-		case "param":
-			params[rt.name] = paths[0]
-			tree = rt
-			found = true
-		case "dir":
-			if paths[0] == "" {
-				tree = rt
-				found = true
 			} else {
-				return
-			}
-		case "any":
-			tree = rt
-			found = true
-			return
-		default:
-			return
-		}
-		if pathsLen > 1 {
-			// pathsLen > 1
-			for _, subTree := range rt.subTrees {
-				tree, found = doFind(subTree, paths[1:], params)
-				if found == true {
+				if data["endMatch"] == true {
+					delete(data, "endMatch")
+					node = subNode
+					return
+				} else {
+					found, node = subNode.find(paths[1:], data)
 					return
 				}
-
 			}
-
-			// 如果匹配子树失败，重新将found设为false
-			found = false
 		}
 	}
 	return
 }
 
-// 搜索路径并返回叶子节点
-func (rt *routeTree) find(path string) (tree *routeTree, params map[string]string, found bool) {
-	paths := strings.Split(path, "/")
-	params = make(map[string]string)
-	tree, found = doFind(rt, paths, params)
+func (rn *routeNode) findUrl(url string) (found bool, node *routeNode, data matchData) {
+	paths := strings.Split(url, "/")
+	data = matchData{}
+	found, node = rn.find(paths[1:], data)
 	return
 }
 
-// 如果不存在路径，则添加。返回叶子节点
-func (rt *routeTree) addNode(paths []string) (tree *routeTree) {
-	var newrt *routeTree
-	if strings.HasPrefix(paths[0], ":") {
-		exists := false
-		name := strings.Replace(paths[0], ":", "", 1)
-		for _, subTree := range rt.subTrees {
-			if subTree.kind == "param" && subTree.name == name {
-				newrt = subTree
-				exists = true
-				break
-			}
+func (rn *routeNode) add(paths []string) (node *routeNode) {
+	data := matchData{}
+	found := false
+	for _, subNode := range rn.subNodes {
+		found = subNode.match(paths[0], data)
+		if found == true {
+			node = subNode
+			break
 		}
-		if exists == false {
-			newrt = newTree("param", name)
-			rt.subTrees = append(rt.subTrees, newrt)
-		}
-	} else if paths[0] == "" {
-		exists := false
-		for _, subTree := range rt.subTrees {
-			if subTree.kind == "dir" {
-				newrt = subTree
-				exists = true
-				break
-			}
-		}
-		if exists == false {
-			newrt = newTree("dir", rt.name)
-			rt.subTrees = append(rt.subTrees, newrt)
-		}
-	} else if paths[0] == "**" {
-		exists := false
-		for _, subTree := range rt.subTrees {
-			if subTree.kind == "any" {
-				newrt = subTree
-				exists = true
-				break
-			}
-		}
-		if exists == false {
-			newrt = newTree("any", rt.name)
-			rt.subTrees = append(rt.subTrees, newrt)
-		}
-	} else {
-		exists := false
-		for _, subTree := range rt.subTrees {
-			if subTree.kind == "path" && subTree.name == paths[0] {
-				newrt = subTree
-				exists = true
-				break
-			}
-		}
-		if exists == false {
-			newrt = newTree("path", paths[0])
-			rt.subTrees = append(rt.subTrees, newrt)
-		}
+	}
+	if found == false {
+		matcher := newPathMatcher(paths[0])
+		node = createNode(matcher)
+		rn.subNodes = append(rn.subNodes, node)
 	}
 	if len(paths) > 1 {
-		tree = newrt.addNode(paths[1:])
-	} else {
-		tree = newrt
+		node = node.add(paths[1:])
 	}
 	return
 }
 
-// 添加路由，path必须以"/"开头，如"/blog"
-func (rt *routeTree) addRoute(path string) (tree *routeTree) {
-	paths := strings.Split(path, "/")
-	tree = rt.addNode(paths[1:])
+func (rn *routeNode) addUrl(url string) (node *routeNode) {
+	paths := strings.Split(url, "/")
+	node = rn.add(paths[1:])
 	return
 }
 
-type router struct {
-	routeTree *routeTree
-}
-
-func newRouter() *router {
-	return &router{
-		routeTree: newTree("root", "root"),
+func createRoot() *routeNode {
+	return &routeNode{
+		pathMatcher:   &rootNode{},
+		methodHandler: newMethodHandler(),
+		subNodes:      []*routeNode{},
 	}
 }
 
-func (r *router) addRoute(method string, path string, handles []Handle) {
-	method = strings.ToUpper(method)
-	tree := r.routeTree.addRoute(path)
-	tree.handles[method] = handles
-}
-
-func (r *router) All(path string, handles ...Handle) {
-	r.addRoute("ALL", path, handles)
-}
-
-func (r *router) Post(path string, handles ...Handle) {
-	r.addRoute("POST", path, handles)
-}
-
-func (r *router) Get(path string, handles ...Handle) {
-	r.addRoute("GET", path, handles)
-}
-
-func (r *router) Put(path string, handles ...Handle) {
-	r.addRoute("PUT", path, handles)
-}
-
-func (r *router) Patch(path string, handles ...Handle) {
-	r.addRoute("PATCH", path, handles)
-}
-
-func (r *router) Delete(path string, handles ...Handle) {
-	r.addRoute("DELETE", path, handles)
-}
-
-func (r *router) Head(path string, handles ...Handle) {
-	r.addRoute("HEAD", path, handles)
-}
-
-func (r *router) Options(path string, handles ...Handle) {
-	r.addRoute("OPTIONS", path, handles)
+func createNode(matcher pathMatcher) *routeNode {
+	return &routeNode{
+		pathMatcher:   matcher,
+		methodHandler: newMethodHandler(),
+		subNodes:      []*routeNode{},
+	}
 }

@@ -16,7 +16,7 @@ const (
 type Context struct {
 	Req    *http.Request
 	Res    http.ResponseWriter
-	Params map[string]string
+	Params matchData
 	Data   map[string]interface{}
 	next   bool
 }
