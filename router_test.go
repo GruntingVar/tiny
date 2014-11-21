@@ -1,15 +1,8 @@
 package tiny
 
 import (
-	"reflect"
 	"testing"
 )
-
-func itemExpect(t *testing.T, a interface{}, b interface{}, testItem string) {
-	if a != b {
-		t.Errorf("%s: Expected %v (type %v) - Got %v (type %v)", testItem, b, reflect.TypeOf(b), a, reflect.TypeOf(a))
-	}
-}
 
 func Test_AddAndFind(t *testing.T) {
 	root := createRoot()
@@ -21,6 +14,7 @@ func Test_AddAndFind(t *testing.T) {
 	node5 := root.addUrl("/blogs/:id")
 	node6 := root.addUrl("/dir/")
 	node7 := root.addUrl("/public/**")
+	node8 := root.addUrl("/")
 
 	found, node, data := root.findUrl("/path1")
 	itemExpect(t, found, true, "find /path1")
@@ -61,6 +55,10 @@ func Test_AddAndFind(t *testing.T) {
 
 	found, _, data = root.findUrl("/nopath")
 	itemExpect(t, found, false, "find /nopath")
+
+	found, node, data = root.findUrl("/")
+	itemExpect(t, found, true, "find /")
+	itemExpect(t, node, node8, "find /")
 }
 
 func Test_Method(t *testing.T) {

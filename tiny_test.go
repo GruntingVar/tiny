@@ -13,6 +13,12 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 	}
 }
 
+func itemExpect(t *testing.T, a interface{}, b interface{}, testItem string) {
+	if a != b {
+		t.Errorf("%s: Expected %v (type %v) - Got %v (type %v)", testItem, b, reflect.TypeOf(b), a, reflect.TypeOf(a))
+	}
+}
+
 func createReqRes(method string, url string) (req *http.Request, res *httptest.ResponseRecorder) {
 	req, _ = http.NewRequest(method, url, nil)
 	res = httptest.NewRecorder()
@@ -48,6 +54,10 @@ func Test_Server(t *testing.T) {
 
 	app.NotFound(func(ctx *Context) {
 		ctx.Text(404, "not found")
+	})
+
+	app.Get("/", func(ctx *Context) {
+		ctx.Text(200, "Home")
 	})
 
 	app.All("/blogs/:id", func(ctx *Context) {
@@ -96,7 +106,13 @@ func Test_Server(t *testing.T) {
 		ctx.Text(200, "dir")
 	})
 
-	req, res := createReqRes("GET", "/users/123")
+	req, res := createReqRes("GET", "/")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Body.String(), "Home")
+
+	req, res = createReqRes("GET", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
 	expect(t, res.Header().Get(contentType), contentJSON+appendCharset)
