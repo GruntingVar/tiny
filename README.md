@@ -1,7 +1,6 @@
-# Tiny
-[![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/m "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
+# Tiny [![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/s "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
 
-Tiny是一个采用Golang编写的Http框架，主要设计灵感来源于Express。
+Tiny是一个采用Golang编写的Http框架，主要设计灵感来源于[Express](http://expressjs.com/)。
 
 ## Hello,world!
 安装好[Go](http://golang.org/)并设置好[GOPATH](http://golang.org/doc/code.html#GOPATH)后，创建如下的`.go`文件。
@@ -54,14 +53,14 @@ Handle是形如`func(*tiny.Context)`的函数，每个路由的每个方法都�
 app.Get("/blogs/:id", handle1, handle2, handle3)
 ~~~
 
-全局的Handle：
+### 全局的Handle：
 ~~~go
 app.Prepend(handle1)
 app.Prepend(handle2)
 app.Append(handle3)
 app.Append(handle4)
 ~~~
-tiny会在执行某个路由的handles前执行handle1、handle2；在执行完某个路由的handles后执行handle3、handle4。记得在这些handle里调用*tiny.Context的Next()方法，执行下一个handle:
+tiny会在执行某个路由的handles前执行handle1、handle2；在执行完某个路由的handles后执行handle3、handle4。__记得在这些handle里调用*tiny.Context的Next()方法__，执行下一个handle:
 ~~~go
 app.Prepend(func(ctx *tiny.Context) {
     ctx.Next()
@@ -69,7 +68,7 @@ app.Prepend(func(ctx *tiny.Context) {
 ~~~
 如果handle1中没有调用Next()方法，则执行完handle1后，直接执行路由相关的handle，而不会执行handle2。
 
-错误处理
+### 错误处理：
 ~~~go
 app.NotFound(handle) // 匹配不到相应的路由时执行此handle
 app.ErrorHandle(handle) // 当某个handle发生panic且并未处理时，将会执行此handle
@@ -87,6 +86,7 @@ type Context struct {
 }
 ~~~
 
+### ctx.Data
 在Handle中可以使用Context的Data属性实现Handle间的通信：
 ~~~go
 app.Get("/data", func(ctx *tiny.Context) {
@@ -97,6 +97,7 @@ app.Get("/data", func(ctx *tiny.Context) {
 })
 ~~~
 
+### ctx.Params
 通过Params属性获取路由参数：
 ~~~go
 app.Get("/blogs/:id", func(ctx *tiny.Context) {
@@ -105,17 +106,18 @@ app.Get("/blogs/:id", func(ctx *tiny.Context) {
 })
 ~~~
 
-Text方法：
+### ctx.Text()
 ~~~go
 app.Get("/text", func(ctx *tiny.Context) {
     ctx.Text(200, "hello")
     // Response:
     // Status Code: 200
     // Content-type: text/plain; charset=UTF-8
+    // Body: hello
 })
 ~~~
 
-Json方法:
+### ctx.Json()
 ~~~go
 app.Get("/json", func(ctx *tiny.Context) {
     ctx.Json(200, map[string]interface{}{
