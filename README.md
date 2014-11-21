@@ -1,6 +1,6 @@
 # Tiny [![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/s "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
 
-Tiny是一个采用Golang编写的Http框架，主要设计灵感来源于[Express](http://expressjs.com/)。
+Tiny是一个采用Golang编写的HTTP框架，主要设计灵感来源于[Express](http://expressjs.com/)。
 
 ## Hello,world!
 安装好[Go](http://golang.org/)并设置好[GOPATH](http://golang.org/doc/code.html#GOPATH)后，创建如下的`.go`文件。
