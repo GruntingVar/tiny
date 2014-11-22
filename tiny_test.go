@@ -87,23 +87,19 @@ func Test_Server(t *testing.T) {
 	})
 
 	app.Patch("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
+		ctx.Text(200, "your id is "+ctx.Params["id"])
 	})
 
 	app.Head("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
+		ctx.Text(200, "your id is "+ctx.Params["id"])
 	})
 
 	app.Options("/users/:id", func(ctx *Context) {
-		ctx.Text(200, "your id is "+ctx.Params["id"].(string))
+		ctx.Text(200, "your id is "+ctx.Params["id"])
 	})
 
 	app.Get("/panic", func(ctx *Context) {
 		panic("test")
-	})
-
-	app.Get("/dir/", func(ctx *Context) {
-		ctx.Text(200, "dir")
 	})
 
 	req, res := createReqRes("GET", "/")
@@ -183,17 +179,5 @@ func Test_Server(t *testing.T) {
 	expect(t, res.Code, 500)
 	expect(t, res.Header().Get(contentType), contentText+appendCharset)
 	expect(t, res.Body.String(), "test")
-
-	req, res = createReqRes("GET", "/dir/")
-	app.ServeHTTP(res, req)
-	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
-	expect(t, res.Body.String(), "dir")
-
-	req, res = createReqRes("GET", "/dir")
-	app.ServeHTTP(res, req)
-	expect(t, res.Code, 404)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
-	expect(t, res.Body.String(), "not found")
 
 }

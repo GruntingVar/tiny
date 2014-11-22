@@ -12,9 +12,7 @@ func Test_AddAndFind(t *testing.T) {
 	node3 := root.addUrl("/users/:id/blogs")
 	node4 := root.addUrl("/users/:id/blogs/:blogId")
 	node5 := root.addUrl("/blogs/:id")
-	node6 := root.addUrl("/dir/")
-	node7 := root.addUrl("/public/**")
-	node8 := root.addUrl("/")
+	node6 := root.addUrl("/")
 
 	found, node, data := root.findUrl("/path1")
 	itemExpect(t, found, true, "find /path1")
@@ -41,24 +39,12 @@ func Test_AddAndFind(t *testing.T) {
 	itemExpect(t, data["id"], "123", "find /blogs/123")
 	itemExpect(t, node, node5, "find /blogs/123")
 
-	found, node, data = root.findUrl("/dir/")
-	itemExpect(t, found, true, "find /dir/")
-	itemExpect(t, node, node6, "find /dir/")
-
-	found, node, data = root.findUrl("/public/test.png")
-	itemExpect(t, found, true, "find /public/test.png")
-	itemExpect(t, node, node7, "find /public/test.png")
-
-	found, node, data = root.findUrl("/public/img/test.jpg")
-	itemExpect(t, found, true, "/public/img/test.jpg")
-	itemExpect(t, node, node7, "find /public/img/test.jpg")
-
 	found, _, data = root.findUrl("/nopath")
 	itemExpect(t, found, false, "find /nopath")
 
 	found, node, data = root.findUrl("/")
 	itemExpect(t, found, true, "find /")
-	itemExpect(t, node, node8, "find /")
+	itemExpect(t, node, node6, "find /")
 }
 
 func Test_Method(t *testing.T) {
@@ -69,8 +55,6 @@ func Test_Method(t *testing.T) {
 
 	testNode := root.addUrl("/test")
 	uidNode := root.addUrl("/users/:id")
-	staticNode := root.addUrl("/static/**")
-	dirNode := root.addUrl("/dir/")
 
 	testNode.Get(oneHandle)
 	handles := testNode.getHandles("GET")
@@ -96,11 +80,11 @@ func Test_Method(t *testing.T) {
 	handles = uidNode.getHandles("HEAD")
 	itemExpect(t, len(handles), 1, "uidNode Head")
 
-	staticNode.Options(oneHandle)
-	handles = staticNode.getHandles("OPTIONS")
-	itemExpect(t, len(handles), 1, "staticNode Options")
+	uidNode.Options(oneHandle)
+	handles = uidNode.getHandles("OPTIONS")
+	itemExpect(t, len(handles), 1, "uidNode Options")
 
-	dirNode.All(oneHandle)
-	handles = dirNode.getHandles("ALL")
-	itemExpect(t, len(handles), 1, "dirNode All")
+	uidNode.All(oneHandle)
+	handles = uidNode.getHandles("ALL")
+	itemExpect(t, len(handles), 1, "uidNode All")
 }

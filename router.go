@@ -6,65 +6,6 @@ import (
 
 type Handle func(*Context)
 
-type matchData map[string]interface{}
-
-type pathMatcher interface {
-	match(string, matchData) bool
-}
-
-func newPathMatcher(path string) pathMatcher {
-	switch {
-	case path == "":
-		return &dirNode{}
-	case path == "**":
-		return &anyNode{}
-	case strings.HasPrefix(path, ":"):
-		name := strings.Replace(path, ":", "", 1)
-		return &paramNode{name: name}
-	default:
-		return &pathNode{name: path}
-	}
-}
-
-type rootNode struct {
-}
-
-func (n *rootNode) match(path string, data matchData) bool {
-	return true
-}
-
-type pathNode struct {
-	name string
-}
-
-func (n *pathNode) match(path string, data matchData) bool {
-	return n.name == path
-}
-
-type paramNode struct {
-	name string
-}
-
-func (n *paramNode) match(path string, data matchData) bool {
-	data[n.name] = path
-	return true
-}
-
-type dirNode struct {
-}
-
-func (n *dirNode) match(path string, data matchData) bool {
-	return path == ""
-}
-
-type anyNode struct {
-}
-
-func (n *anyNode) match(path string, data matchData) bool {
-	data["endMatch"] = true
-	return true
-}
-
 type methodHandler struct {
 	handles map[string][]Handle
 }
@@ -118,55 +59,69 @@ func (mh methodHandler) All(handles []Handle) {
 }
 
 type routeNode struct {
-	pathMatcher
+	name string
+	kind string
 	methodHandler
 	subNodes []*routeNode
 }
 
-func (rn *routeNode) find(paths []string, data matchData) (found bool, node *routeNode) {
+func (rn *routeNode) find(paths []string, data map[string]string) (found bool, node *routeNode) {
 	node = &routeNode{}
 	found = false
 	for _, subNode := range rn.subNodes {
-		found = subNode.match(paths[0], data)
+
+		switch subNode.kind {
+		case "path":
+			if paths[0] == subNode.name {
+				found = true
+			}
+		case "param":
+			found = true
+			data[subNode.name] = strings.Replace(paths[0], ":", "", 1)
+		}
+
 		if found == true {
 			if len(paths) == 1 {
 				node = subNode
 				return
 			} else {
-				if data["endMatch"] == true {
-					delete(data, "endMatch")
-					node = subNode
-					return
-				} else {
-					found, node = subNode.find(paths[1:], data)
-					return
-				}
+				found, node = subNode.find(paths[1:], data)
+				return
 			}
 		}
 	}
 	return
 }
 
-func (rn *routeNode) findUrl(url string) (found bool, node *routeNode, data matchData) {
+func (rn *routeNode) findUrl(url string) (found bool, node *routeNode, data map[string]string) {
 	paths := strings.Split(url, "/")
-	data = matchData{}
+	data = make(map[string]string)
 	found, node = rn.find(paths[1:], data)
 	return
 }
 
 func (rn *routeNode) add(paths []string) (node *routeNode) {
-	data := matchData{}
 	found := false
+
+	var name string
+	var kind string
+	if strings.HasPrefix(paths[0], ":") {
+		name = strings.Replace(paths[0], ":", "", 1)
+		kind = "param"
+	} else {
+		name = paths[0]
+		kind = "path"
+	}
+
 	for _, subNode := range rn.subNodes {
-		found = subNode.match(paths[0], data)
-		if found == true {
+		if subNode.name == name {
+			found = true
 			node = subNode
 			break
 		}
 	}
 	if found == false {
-		matcher := newPathMatcher(paths[0])
-		node = createNode(matcher)
+		node = &routeNode{name, kind, newMethodHandler(), []*routeNode{}}
 		rn.subNodes = append(rn.subNodes, node)
 	}
 	if len(paths) > 1 {
@@ -182,17 +137,5 @@ func (rn *routeNode) addUrl(url string) (node *routeNode) {
 }
 
 func createRoot() *routeNode {
-	return &routeNode{
-		pathMatcher:   &rootNode{},
-		methodHandler: newMethodHandler(),
-		subNodes:      []*routeNode{},
-	}
-}
-
-func createNode(matcher pathMatcher) *routeNode {
-	return &routeNode{
-		pathMatcher:   matcher,
-		methodHandler: newMethodHandler(),
-		subNodes:      []*routeNode{},
-	}
+	return &routeNode{"root", "root", newMethodHandler(), []*routeNode{}}
 }
