@@ -26,35 +26,35 @@ func (mh methodHandler) addHandles(method string, handles []Handle) {
 	mh.handles[method] = append(mh.handles[method], handles...)
 }
 
-func (mh methodHandler) Post(handles []Handle) {
+func (mh methodHandler) post(handles []Handle) {
 	mh.addHandles("POST", handles)
 }
 
-func (mh methodHandler) Get(handles []Handle) {
+func (mh methodHandler) get(handles []Handle) {
 	mh.addHandles("GET", handles)
 }
 
-func (mh methodHandler) Put(handles []Handle) {
+func (mh methodHandler) put(handles []Handle) {
 	mh.addHandles("PUT", handles)
 }
 
-func (mh methodHandler) Patch(handles []Handle) {
+func (mh methodHandler) patch(handles []Handle) {
 	mh.addHandles("PATCH", handles)
 }
 
-func (mh methodHandler) Delete(handles []Handle) {
+func (mh methodHandler) delete(handles []Handle) {
 	mh.addHandles("DELETE", handles)
 }
 
-func (mh methodHandler) Head(handles []Handle) {
+func (mh methodHandler) head(handles []Handle) {
 	mh.addHandles("HEAD", handles)
 }
 
-func (mh methodHandler) Options(handles []Handle) {
+func (mh methodHandler) options(handles []Handle) {
 	mh.addHandles("OPTIONS", handles)
 }
 
-func (mh methodHandler) All(handles []Handle) {
+func (mh methodHandler) all(handles []Handle) {
 	mh.addHandles("ALL", handles)
 }
 

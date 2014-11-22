@@ -56,35 +56,35 @@ func Test_Method(t *testing.T) {
 	testNode := root.addUrl("/test")
 	uidNode := root.addUrl("/users/:id")
 
-	testNode.Get(oneHandle)
+	testNode.get(oneHandle)
 	handles := testNode.getHandles("GET")
-	itemExpect(t, len(handles), 1, "testNode Get")
+	itemExpect(t, len(handles), 1, "testNode get")
 
-	uidNode.Post(oneHandle)
+	uidNode.post(oneHandle)
 	handles = uidNode.getHandles("POST")
-	itemExpect(t, len(handles), 1, "uidNode Post")
+	itemExpect(t, len(handles), 1, "uidNode post")
 
-	uidNode.Put(twoHandles)
+	uidNode.put(twoHandles)
 	handles = uidNode.getHandles("PUT")
-	itemExpect(t, len(handles), 2, "uidNode Put")
+	itemExpect(t, len(handles), 2, "uidNode put")
 
-	uidNode.Delete(oneHandle)
+	uidNode.delete(oneHandle)
 	handles = uidNode.getHandles("DELETE")
-	itemExpect(t, len(handles), 1, "uidNode Delete")
+	itemExpect(t, len(handles), 1, "uidNode delete")
 
-	uidNode.Patch(oneHandle)
+	uidNode.patch(oneHandle)
 	handles = uidNode.getHandles("PATCH")
-	itemExpect(t, len(handles), 1, "uidNode Patch")
+	itemExpect(t, len(handles), 1, "uidNode patch")
 
-	uidNode.Head(oneHandle)
+	uidNode.head(oneHandle)
 	handles = uidNode.getHandles("HEAD")
-	itemExpect(t, len(handles), 1, "uidNode Head")
+	itemExpect(t, len(handles), 1, "uidNode head")
 
-	uidNode.Options(oneHandle)
+	uidNode.options(oneHandle)
 	handles = uidNode.getHandles("OPTIONS")
-	itemExpect(t, len(handles), 1, "uidNode Options")
+	itemExpect(t, len(handles), 1, "uidNode options")
 
-	uidNode.All(oneHandle)
+	uidNode.all(oneHandle)
 	handles = uidNode.getHandles("ALL")
-	itemExpect(t, len(handles), 1, "uidNode All")
+	itemExpect(t, len(handles), 1, "uidNode all")
 }

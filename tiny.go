@@ -102,42 +102,42 @@ func (tiny *Tiny) ErrorHandle(h Handle) {
 
 func (tiny *Tiny) Post(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Post(handles)
+	node.post(handles)
 }
 
 func (tiny *Tiny) Get(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Get(handles)
+	node.get(handles)
 }
 
 func (tiny *Tiny) Put(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Put(handles)
+	node.put(handles)
 }
 
 func (tiny *Tiny) Patch(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Patch(handles)
+	node.patch(handles)
 }
 
 func (tiny *Tiny) Delete(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Delete(handles)
+	node.delete(handles)
 }
 
 func (tiny *Tiny) Head(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Head(handles)
+	node.head(handles)
 }
 
 func (tiny *Tiny) Options(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.Options(handles)
+	node.options(handles)
 }
 
 func (tiny *Tiny) All(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
-	node.All(handles)
+	node.all(handles)
 }
 
 func runHandles(ctx *Context, handles []Handle) {
