@@ -10,7 +10,6 @@ const (
 	contentText    = "text/plain"
 	contentJSON    = "application/json"
 	defaultCharset = "UTF-8"
-	appendCharset  = "; charset=" + defaultCharset
 )
 
 type Context struct {
@@ -26,18 +25,47 @@ func (ctx *Context) Next() {
 }
 
 func (ctx *Context) Text(status int, text string) {
-	ctx.Res.Header().Set(contentType, contentText+appendCharset)
+	ctx.Res.Header().Set(contentType, appendCharset(contentText, defaultCharset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write([]byte(text))
 }
 
-func (ctx *Context) Json(status int, v interface{}) error {
-	result, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return err
+func (ctx *Context) Json(status int, v interface{}, configs ...map[string]interface{}) error {
+
+	indent := true
+	charset := defaultCharset
+
+	if len(configs) == 1 {
+		for _, config := range configs {
+			if config["indent"].(bool) == false {
+				indent = false
+			}
+			if config["charset"] != nil {
+				charset = config["charset"].(string)
+			}
+		}
 	}
-	ctx.Res.Header().Set(contentType, contentJSON+appendCharset)
+
+	var result []byte
+	var err error
+	if indent == true {
+		result, err = json.MarshalIndent(v, "", "  ")
+		if err != nil {
+			return err
+		}
+	} else {
+		result, err = json.Marshal(v)
+		if err != nil {
+			return err
+		}
+	}
+
+	ctx.Res.Header().Set(contentType, appendCharset(contentJSON, charset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write(result)
 	return nil
+}
+
+func appendCharset(content string, charset string) string {
+	return content + "; charset=" + charset
 }

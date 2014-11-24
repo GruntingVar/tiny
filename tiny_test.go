@@ -105,13 +105,13 @@ func Test_Server(t *testing.T) {
 	req, res := createReqRes("GET", "/")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "Home")
 
 	req, res = createReqRes("GET", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentJSON+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentJSON, defaultCharset))
 	expect(t, res.Body.String(), `{
   "data": {
     "pre1": 1,
@@ -123,61 +123,61 @@ func Test_Server(t *testing.T) {
 	req, res = createReqRes("POST", "/users/abc")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 201)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "created, uid is abc")
 
 	req, res = createReqRes("PUT", "/users/123/name")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "what's your name?")
 
 	req, res = createReqRes("DELETE", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 204)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "No Content")
 
 	req, res = createReqRes("PATCH", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "your id is 123")
 
 	req, res = createReqRes("HEAD", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "your id is 123")
 
 	req, res = createReqRes("OPTIONS", "/users/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "your id is 123")
 
 	req, res = createReqRes("GET", "/blogs/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "blog")
 
 	req, res = createReqRes("POST", "/blogs/123")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "blog")
 
 	req, res = createReqRes("GET", "/random/test")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 404)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "not found")
 
 	req, res = createReqRes("GET", "/panic")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 500)
-	expect(t, res.Header().Get(contentType), contentText+appendCharset)
+	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "test")
 
 }
