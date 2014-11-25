@@ -9,13 +9,13 @@ import (
 
 func expect(t *testing.T, a interface{}, b interface{}) {
 	if a != b {
-		t.Errorf("Expected %v (type %v) - Got %v (type %v)", b, reflect.TypeOf(b), a, reflect.TypeOf(a))
+		t.Errorf("期望值: %v (类型: %v)\n实际值: %v (类型: %v)\n", b, reflect.TypeOf(b), a, reflect.TypeOf(a))
 	}
 }
 
 func itemExpect(t *testing.T, a interface{}, b interface{}, testItem string) {
 	if a != b {
-		t.Errorf("%s: Expected %v (type %v) - Got %v (type %v)", testItem, b, reflect.TypeOf(b), a, reflect.TypeOf(a))
+		t.Errorf("%s\n: 期望值: %v (类型: %v)\n实际值: %v (类型: %v)\n", testItem, b, reflect.TypeOf(b), a, reflect.TypeOf(a))
 	}
 }
 

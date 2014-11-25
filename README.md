@@ -1,6 +1,6 @@
 # Tiny [![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/s "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
 
-Tiny是一个采用Golang编写的HTTP框架，主要设计灵感来源于[Express](http://expressjs.com/)。
+Tiny是一个采用Golang编写的用于构建RESTful API的框架，主要设计灵感来源于[Express](http://expressjs.com/)。目前处于低调开发阶段，功能还在调整中，可能会有较大变化，但一定会更简单易用，敬请期待。
 
 ## Hello,world!
 安装好[Go](http://golang.org/)并设置好[GOPATH](http://golang.org/doc/code.html#GOPATH)后，创建如下的`.go`文件。
@@ -134,5 +134,15 @@ app.Get("/json", func(ctx *tiny.Context) {
     // }
 })
 ~~~
-
-(目前框架和文档都还在紧张的建设中，敬请期待)
+也可以关闭ident和设定字符编码：
+~~~go
+ctx.Json(200, map[string]interface{}{
+    "id": 1,
+    "name": "Dart",
+}, map[string]interface{}{
+    "ident": false,
+    "charset": "gbk",
+})
+// Response:
+// {"id":1,"name":"Dart"}
+~~~
