@@ -1,8 +1,6 @@
 package tiny
 
 import (
-	"compress/gzip"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -14,15 +12,6 @@ var defaultNotFoundHandle = func(ctx *Context) {
 
 var defaultPanicHandle = func(ctx *Context) {
 	ctx.Text(500, "Internal Server Error")
-}
-
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-}
-
-func (grw gzipResponseWriter) Write(b []byte) (int, error) {
-	return grw.Writer.Write(b)
 }
 
 type Tiny struct {
@@ -44,16 +33,6 @@ func New() *Tiny {
 func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	found, node, data := tiny.root.findUrl(r.URL.Path)
 
-	var writer http.ResponseWriter
-	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-		writer = rw
-	} else {
-		rw.Header().Set("Content-Encoding", "gzip")
-		gz := gzip.NewWriter(rw)
-		defer gz.Close()
-		writer = gzipResponseWriter{Writer: gz, ResponseWriter: rw}
-	}
-
 	var handles []Handle
 	if found == true {
 		handles = append(tiny.middlewares, node.getHandles(strings.ToUpper(r.Method))...)
@@ -61,7 +40,7 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		handles = append(tiny.middlewares, tiny.notFoundHandle)
 	}
 
-	ctx := &Context{r, writer, data, make(map[string]interface{}), handles, 0}
+	ctx := &Context{r, rw, data, make(map[string]interface{}), handles, 0}
 
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {
