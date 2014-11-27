@@ -28,23 +28,13 @@ func createReqRes(method string, url string) (req *http.Request, res *httptest.R
 func Test_Server(t *testing.T) {
 	app := New()
 
-	app.Prepend(func(ctx *Context) {
+	app.Use(func(ctx *Context) {
 		ctx.Data["pre1"] = 1
 		ctx.Next()
 	})
 
-	app.Prepend(func(ctx *Context) {
+	app.Use(func(ctx *Context) {
 		ctx.Data["pre2"] = 2
-		ctx.Next()
-	})
-
-	app.Append(func(ctx *Context) {
-		ctx.Data["end1"] = "end1"
-		ctx.Next()
-	})
-
-	app.Append(func(ctx *Context) {
-		ctx.Data["end2"] = "end2"
 		ctx.Next()
 	})
 
@@ -100,6 +90,18 @@ func Test_Server(t *testing.T) {
 
 	app.Get("/panic", func(ctx *Context) {
 		panic("test")
+	})
+
+	app.Get("/next", func(ctx *Context) {
+		ctx.Next()
+		itemExpect(t, ctx.Data["next"].(bool), true, "test next")
+		itemExpect(t, ctx.Data["three"].(int), 3, "test next")
+	}, func(ctx *Context) {
+		ctx.Data["next"] = true
+		ctx.Next()
+	}, func(ctx *Context) {
+		itemExpect(t, ctx.Data["next"].(bool), true, "test next")
+		ctx.Data["three"] = 3
 	})
 
 	req, res := createReqRes("GET", "/")
@@ -180,4 +182,6 @@ func Test_Server(t *testing.T) {
 	expect(t, res.Header().Get(contentType), appendCharset(contentText, defaultCharset))
 	expect(t, res.Body.String(), "test")
 
+	req, res = createReqRes("GET", "/next")
+	app.ServeHTTP(res, req)
 }

@@ -27,8 +27,7 @@ func (grw gzipResponseWriter) Write(b []byte) (int, error) {
 
 type Tiny struct {
 	root           *routeNode
-	preHandles     []Handle // 在进行路由匹配之前执行的handle
-	endHandles     []Handle // 在进行路由匹配之后执行的handle
+	middlewares    []Handle // 在进行路由匹配之前执行的handle
 	notFoundHandle Handle
 	errorHandle    Handle
 }
@@ -36,8 +35,7 @@ type Tiny struct {
 func New() *Tiny {
 	return &Tiny{
 		root:           createRoot(),
-		preHandles:     []Handle{},
-		endHandles:     []Handle{},
+		middlewares:    []Handle{},
 		notFoundHandle: defaultNotFoundHandle,
 		errorHandle:    defaultErrorHandle,
 	}
@@ -55,7 +53,15 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		defer gz.Close()
 		writer = gzipResponseWriter{Writer: gz, ResponseWriter: rw}
 	}
-	ctx := &Context{r, writer, data, make(map[string]interface{}), false}
+
+	var handles []Handle
+	if found == true {
+		handles = append(tiny.middlewares, node.getHandles(strings.ToUpper(r.Method))...)
+	} else {
+		handles = append(tiny.middlewares, tiny.notFoundHandle)
+	}
+
+	ctx := &Context{r, writer, data, make(map[string]interface{}), handles, 0}
 
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {
@@ -64,19 +70,7 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 	}(ctx)
 
-	runHandles(ctx, tiny.preHandles)
-	if found == true {
-		handles := node.getHandles(strings.ToUpper(r.Method))
-		if handles == nil {
-			tiny.notFoundHandle(ctx)
-		} else {
-			runHandles(ctx, handles)
-		}
-	} else {
-		tiny.notFoundHandle(ctx)
-	}
-
-	runHandles(ctx, tiny.endHandles)
+	handles[0](ctx)
 }
 
 func (tiny *Tiny) Run(port string) {
@@ -84,12 +78,8 @@ func (tiny *Tiny) Run(port string) {
 	log.Fatal(http.ListenAndServe(":"+port, tiny))
 }
 
-func (tiny *Tiny) Prepend(h Handle) {
-	tiny.preHandles = append(tiny.preHandles, h)
-}
-
-func (tiny *Tiny) Append(h Handle) {
-	tiny.endHandles = append(tiny.endHandles, h)
+func (tiny *Tiny) Use(h Handle) {
+	tiny.middlewares = append(tiny.middlewares, h)
 }
 
 func (tiny *Tiny) NotFound(h Handle) {
@@ -138,14 +128,4 @@ func (tiny *Tiny) Options(url string, handles ...Handle) {
 func (tiny *Tiny) All(url string, handles ...Handle) {
 	node := tiny.root.addUrl(url)
 	node.all(handles)
-}
-
-func runHandles(ctx *Context, handles []Handle) {
-	ctx.next = false
-	for _, handle := range handles {
-		handle(ctx)
-		if ctx.next == false {
-			return
-		}
-	}
 }

@@ -13,15 +13,19 @@ const (
 )
 
 type Context struct {
-	Req    *http.Request
-	Res    http.ResponseWriter
-	Params map[string]string
-	Data   map[string]interface{}
-	next   bool
+	Req     *http.Request
+	Res     http.ResponseWriter
+	Params  map[string]string
+	Data    map[string]interface{}
+	handles []Handle
+	index   int
 }
 
 func (ctx *Context) Next() {
-	ctx.next = true
+	ctx.index++
+	if ctx.index < len(ctx.handles) {
+		ctx.handles[ctx.index](ctx)
+	}
 }
 
 func (ctx *Context) Text(status int, text string) {
