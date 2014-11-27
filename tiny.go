@@ -12,7 +12,7 @@ var defaultNotFoundHandle = func(ctx *Context) {
 	ctx.Text(404, "Not Found")
 }
 
-var defaultErrorHandle = func(ctx *Context) {
+var defaultPanicHandle = func(ctx *Context) {
 	ctx.Text(500, "Internal Server Error")
 }
 
@@ -29,7 +29,7 @@ type Tiny struct {
 	root           *routeNode
 	middlewares    []Handle // 在进行路由匹配之前执行的handle
 	notFoundHandle Handle
-	errorHandle    Handle
+	panicHandle    Handle
 }
 
 func New() *Tiny {
@@ -37,7 +37,7 @@ func New() *Tiny {
 		root:           createRoot(),
 		middlewares:    []Handle{},
 		notFoundHandle: defaultNotFoundHandle,
-		errorHandle:    defaultErrorHandle,
+		panicHandle:    defaultPanicHandle,
 	}
 }
 
@@ -66,7 +66,7 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {
 			ctx.Data["error"] = err
-			tiny.errorHandle(ctx)
+			tiny.panicHandle(ctx)
 		}
 	}(ctx)
 
@@ -86,8 +86,8 @@ func (tiny *Tiny) NotFound(h Handle) {
 	tiny.notFoundHandle = h
 }
 
-func (tiny *Tiny) ErrorHandle(h Handle) {
-	tiny.errorHandle = h
+func (tiny *Tiny) PanicHandle(h Handle) {
+	tiny.panicHandle = h
 }
 
 func (tiny *Tiny) Post(url string, handles ...Handle) {
