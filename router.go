@@ -4,17 +4,17 @@ import (
 	"strings"
 )
 
-type Handle func(*Context)
+type Handler func(*Context)
 
 type methodHandler struct {
-	handles map[string][]Handle
+	handles map[string][]Handler
 }
 
 func newMethodHandler() methodHandler {
-	return methodHandler{make(map[string][]Handle)}
+	return methodHandler{make(map[string][]Handler)}
 }
 
-func (mh methodHandler) getHandles(method string) []Handle {
+func (mh methodHandler) getHandles(method string) []Handler {
 	if mh.handles[method] != nil {
 		return mh.handles[method]
 	} else {
@@ -22,39 +22,39 @@ func (mh methodHandler) getHandles(method string) []Handle {
 	}
 }
 
-func (mh methodHandler) addHandles(method string, handles []Handle) {
+func (mh methodHandler) addHandles(method string, handles []Handler) {
 	mh.handles[method] = append(mh.handles[method], handles...)
 }
 
-func (mh methodHandler) post(handles []Handle) {
+func (mh methodHandler) post(handles []Handler) {
 	mh.addHandles("POST", handles)
 }
 
-func (mh methodHandler) get(handles []Handle) {
+func (mh methodHandler) get(handles []Handler) {
 	mh.addHandles("GET", handles)
 }
 
-func (mh methodHandler) put(handles []Handle) {
+func (mh methodHandler) put(handles []Handler) {
 	mh.addHandles("PUT", handles)
 }
 
-func (mh methodHandler) patch(handles []Handle) {
+func (mh methodHandler) patch(handles []Handler) {
 	mh.addHandles("PATCH", handles)
 }
 
-func (mh methodHandler) delete(handles []Handle) {
+func (mh methodHandler) delete(handles []Handler) {
 	mh.addHandles("DELETE", handles)
 }
 
-func (mh methodHandler) head(handles []Handle) {
+func (mh methodHandler) head(handles []Handler) {
 	mh.addHandles("HEAD", handles)
 }
 
-func (mh methodHandler) options(handles []Handle) {
+func (mh methodHandler) options(handles []Handler) {
 	mh.addHandles("OPTIONS", handles)
 }
 
-func (mh methodHandler) all(handles []Handle) {
+func (mh methodHandler) all(handles []Handler) {
 	mh.addHandles("ALL", handles)
 }
 

@@ -49,8 +49,8 @@ func Test_AddAndFind(t *testing.T) {
 
 func Test_Method(t *testing.T) {
 	handle := func(ctx *Context) {}
-	oneHandle := []Handle{handle}
-	twoHandles := []Handle{handle, handle}
+	oneHandle := []Handler{handle}
+	twoHandles := []Handler{handle, handle}
 	root := createRoot()
 
 	testNode := root.addUrl("/test")

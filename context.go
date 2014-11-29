@@ -17,7 +17,7 @@ type Context struct {
 	Res     http.ResponseWriter
 	Params  map[string]string
 	Data    map[string]interface{}
-	handles []Handle
+	handles []Handler
 	index   int
 }
 

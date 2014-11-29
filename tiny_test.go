@@ -38,7 +38,7 @@ func Test_Server(t *testing.T) {
 		ctx.Next()
 	})
 
-	app.PanicHandle(func(ctx *Context) {
+	app.PanicHandler(func(ctx *Context) {
 		ctx.Text(500, ctx.Data["error"].(string))
 	})
 

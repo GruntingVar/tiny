@@ -51,13 +51,13 @@ app.All("/blogs/:id", handler)
 1. 基本类型，形如`/users/login`
 2. 带参数的路由，形如`/users/:id`，可以在handler中通过ctx.Params["id"]取得类型为字符串的id值
 
-## Handle
-Handle是形如`func(*tiny.Context)`的函数，每个路由的每个方法都可以配置多个Handle，如：
+## Handler
+Handler是形如`func(*tiny.Context)`的函数，每个路由的每个方法都可以配置多个Handler，如：
 ~~~go
 app.Get("/blogs/:id", handler1, handler2, handler3)
 ~~~
 
-### 全局的Handle：
+### 全局的Handler：
 ~~~go
 app.Use(handler1)
 app.Use(handler2)
@@ -73,7 +73,7 @@ app.Use(func(ctx *tiny.Context) {
 ### 错误处理：
 ~~~go
 app.NotFound(handler) // 匹配不到相应的路由时执行此handler
-app.PanicHandle(handler) // 当某个handler发生panic且并未处理时，将会执行此handler
+app.PanicHandler(handler) // 当某个handler发生panic且并未处理时，将会执行此handler
 ~~~
 
 ## Context
@@ -89,7 +89,7 @@ type Context struct {
 ~~~
 
 ### ctx.Data
-在Handle中可以使用Context的Data属性实现Handle间的通信：
+在Handler中可以使用Context的Data属性实现Handler间的通信：
 ~~~go
 app.Get("/data", func(ctx *tiny.Context) {
     ctx.Data["test"] = "hello"
@@ -150,7 +150,7 @@ ctx.Json(200, map[string]interface{}{
 ~~~
 
 ### ctx.Next()
-在一个Handle里调用Next()方法会立即执行下一个Handle方法，在执行完毕后还会继续执行这个Handle中ctx.Next()后面的代码，这样可以充分利用go语言中的defer，轻松写出有用的路由中间件Handle。
+在一个Handler里调用Next()方法会立即执行下一个Handler方法，在执行完毕后还会继续执行这个Handler中ctx.Next()后面的代码，这样可以充分利用go语言中的defer，轻松写出有用的路由中间件Handler。
 ~~~go
 app.Use(func(ctx *tiny.Context) {
     // do something

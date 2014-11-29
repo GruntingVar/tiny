@@ -6,50 +6,50 @@ import (
 	"strings"
 )
 
-var defaultNotFoundHandle = func(ctx *Context) {
+var defaultNotFoundHandler = func(ctx *Context) {
 	ctx.Text(404, "Not Found")
 }
 
-var defaultPanicHandle = func(ctx *Context) {
+var defaultPanicHandler = func(ctx *Context) {
 	ctx.Text(500, "Internal Server Error")
 }
 
 type Tiny struct {
-	root           *routeNode
-	middlewares    []Handle // 在进行路由匹配之前执行的handle
-	notFoundHandle Handle
-	panicHandle    Handle
+	root            *routeNode
+	middlewares     []Handler // 在进行路由匹配之前执行的handle
+	notFoundHandler Handler
+	panicHandler    Handler
 }
 
 func New() *Tiny {
 	return &Tiny{
-		root:           createRoot(),
-		middlewares:    []Handle{},
-		notFoundHandle: defaultNotFoundHandle,
-		panicHandle:    defaultPanicHandle,
+		root:            createRoot(),
+		middlewares:     []Handler{},
+		notFoundHandler: defaultNotFoundHandler,
+		panicHandler:    defaultPanicHandler,
 	}
 }
 
 func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	found, node, data := tiny.root.findUrl(r.URL.Path)
 
-	var handles []Handle
+	var handlers []Handler
 	if found == true {
-		handles = append(tiny.middlewares, node.getHandles(strings.ToUpper(r.Method))...)
+		handlers = append(tiny.middlewares, node.getHandles(strings.ToUpper(r.Method))...)
 	} else {
-		handles = append(tiny.middlewares, tiny.notFoundHandle)
+		handlers = append(tiny.middlewares, tiny.notFoundHandler)
 	}
 
-	ctx := &Context{r, rw, data, make(map[string]interface{}), handles, 0}
+	ctx := &Context{r, rw, data, make(map[string]interface{}), handlers, 0}
 
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {
 			ctx.Data["error"] = err
-			tiny.panicHandle(ctx)
+			tiny.panicHandler(ctx)
 		}
 	}(ctx)
 
-	handles[0](ctx)
+	handlers[0](ctx)
 }
 
 func (tiny *Tiny) Run(port string) {
@@ -57,54 +57,54 @@ func (tiny *Tiny) Run(port string) {
 	log.Fatal(http.ListenAndServe(":"+port, tiny))
 }
 
-func (tiny *Tiny) Use(h Handle) {
+func (tiny *Tiny) Use(h Handler) {
 	tiny.middlewares = append(tiny.middlewares, h)
 }
 
-func (tiny *Tiny) NotFound(h Handle) {
-	tiny.notFoundHandle = h
+func (tiny *Tiny) NotFound(h Handler) {
+	tiny.notFoundHandler = h
 }
 
-func (tiny *Tiny) PanicHandle(h Handle) {
-	tiny.panicHandle = h
+func (tiny *Tiny) PanicHandler(h Handler) {
+	tiny.panicHandler = h
 }
 
-func (tiny *Tiny) Post(url string, handles ...Handle) {
+func (tiny *Tiny) Post(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.post(handles)
+	node.post(handlers)
 }
 
-func (tiny *Tiny) Get(url string, handles ...Handle) {
+func (tiny *Tiny) Get(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.get(handles)
+	node.get(handlers)
 }
 
-func (tiny *Tiny) Put(url string, handles ...Handle) {
+func (tiny *Tiny) Put(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.put(handles)
+	node.put(handlers)
 }
 
-func (tiny *Tiny) Patch(url string, handles ...Handle) {
+func (tiny *Tiny) Patch(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.patch(handles)
+	node.patch(handlers)
 }
 
-func (tiny *Tiny) Delete(url string, handles ...Handle) {
+func (tiny *Tiny) Delete(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.delete(handles)
+	node.delete(handlers)
 }
 
-func (tiny *Tiny) Head(url string, handles ...Handle) {
+func (tiny *Tiny) Head(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.head(handles)
+	node.head(handlers)
 }
 
-func (tiny *Tiny) Options(url string, handles ...Handle) {
+func (tiny *Tiny) Options(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.options(handles)
+	node.options(handlers)
 }
 
-func (tiny *Tiny) All(url string, handles ...Handle) {
+func (tiny *Tiny) All(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
-	node.all(handles)
+	node.all(handlers)
 }
