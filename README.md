@@ -1,5 +1,5 @@
 # Tiny [![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/s "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
-[![Coverage](http://gocover.io/github.com/GruntingVar/tiny)](http://gocover.io/github.com/GruntingVar/tiny)
+[![Coverage](http://gocover.io/_badge/github.com/GruntingVar/tiny)](http://gocover.io/github.com/GruntingVar/tiny)
 
 Tiny是一个采用Golang编写的用于构建RESTful API的框架，主要设计灵感来源于[Express](http://expressjs.com/)。目前处于低调开发阶段，功能还在调整中，可能会有较大变化。
 
