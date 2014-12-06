@@ -19,6 +19,12 @@ func testItem(t *testing.T, actual interface{}, expect interface{}, description 
 	}
 }
 
+func testNotEqualItem(t *testing.T, actual interface{}, expect interface{}, description string) {
+	if actual == expect {
+		t.Errorf("%s:\nexpect: %v (type: %v) should not be: %v (type: %v)\n", description, expect, reflect.TypeOf(expect), actual, reflect.TypeOf(actual))
+	}
+}
+
 func createReqRes(method string, url string) (req *http.Request, res *httptest.ResponseRecorder) {
 	req, _ = http.NewRequest(method, url, nil)
 	res = httptest.NewRecorder()
@@ -153,6 +159,52 @@ func Test_Rest(t *testing.T) {
 	}
 
 	req, res = createReqRes("OPTIONS", "/users/123")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+}
+
+func Test_AllMethod(t *testing.T) {
+	app := createComplexServer()
+
+	req, res := createReqRes("POST", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("GET", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("PUT", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("PATCH", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("DELETE", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("HEAD", "/all")
+	app.ServeHTTP(res, req)
+	if res.Code != 200 {
+		t.Fail()
+	}
+
+	req, res = createReqRes("OPTIONS", "/all")
 	app.ServeHTTP(res, req)
 	if res.Code != 200 {
 		t.Fail()
