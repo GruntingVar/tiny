@@ -15,36 +15,36 @@ func Test_AddAndFind(t *testing.T) {
 	node6 := root.addUrl("/")
 
 	found, node, data := root.findUrl("/path1")
-	itemExpect(t, found, true, "find /path1")
-	itemExpect(t, node, node1, "find /path1")
+	testItem(t, found, true, "find /path1")
+	testItem(t, node, node1, "find /path1")
 
 	found, node, data = root.findUrl("/users/123")
-	itemExpect(t, found, true, "find /users/123")
-	itemExpect(t, data["id"], "123", "find /users/123")
-	itemExpect(t, node, node2, "find /users/123")
+	testItem(t, found, true, "find /users/123")
+	testItem(t, data["id"], "123", "find /users/123")
+	testItem(t, node, node2, "find /users/123")
 
 	found, node, data = root.findUrl("/users/123/blogs")
-	itemExpect(t, found, true, "find /users/123/blogs")
-	itemExpect(t, data["id"], "123", "find /users/123/blogs")
-	itemExpect(t, node, node3, "find /users/123/blogs")
+	testItem(t, found, true, "find /users/123/blogs")
+	testItem(t, data["id"], "123", "find /users/123/blogs")
+	testItem(t, node, node3, "find /users/123/blogs")
 
 	found, node, data = root.findUrl("/users/123/blogs/000")
-	itemExpect(t, found, true, "find /users/123/blogs/000")
-	itemExpect(t, data["id"], "123", "find /users/123/blogs/000")
-	itemExpect(t, data["blogId"], "000", "find /users/123/blogs/000")
-	itemExpect(t, node, node4, "find /users/123/blogs/000")
+	testItem(t, found, true, "find /users/123/blogs/000")
+	testItem(t, data["id"], "123", "find /users/123/blogs/000")
+	testItem(t, data["blogId"], "000", "find /users/123/blogs/000")
+	testItem(t, node, node4, "find /users/123/blogs/000")
 
 	found, node, data = root.findUrl("/blogs/123")
-	itemExpect(t, found, true, "find /blogs/123")
-	itemExpect(t, data["id"], "123", "find /blogs/123")
-	itemExpect(t, node, node5, "find /blogs/123")
+	testItem(t, found, true, "find /blogs/123")
+	testItem(t, data["id"], "123", "find /blogs/123")
+	testItem(t, node, node5, "find /blogs/123")
 
 	found, _, data = root.findUrl("/nopath")
-	itemExpect(t, found, false, "find /nopath")
+	testItem(t, found, false, "find /nopath")
 
 	found, node, data = root.findUrl("/")
-	itemExpect(t, found, true, "find /")
-	itemExpect(t, node, node6, "find /")
+	testItem(t, found, true, "find /")
+	testItem(t, node, node6, "find /")
 }
 
 func Test_Method(t *testing.T) {
@@ -58,33 +58,33 @@ func Test_Method(t *testing.T) {
 
 	testNode.get(oneHandle)
 	handles := testNode.getHandles("GET")
-	itemExpect(t, len(handles), 1, "testNode get")
+	testItem(t, len(handles), 1, "testNode get")
 
 	uidNode.post(oneHandle)
 	handles = uidNode.getHandles("POST")
-	itemExpect(t, len(handles), 1, "uidNode post")
+	testItem(t, len(handles), 1, "uidNode post")
 
 	uidNode.put(twoHandles)
 	handles = uidNode.getHandles("PUT")
-	itemExpect(t, len(handles), 2, "uidNode put")
+	testItem(t, len(handles), 2, "uidNode put")
 
 	uidNode.delete(oneHandle)
 	handles = uidNode.getHandles("DELETE")
-	itemExpect(t, len(handles), 1, "uidNode delete")
+	testItem(t, len(handles), 1, "uidNode delete")
 
 	uidNode.patch(oneHandle)
 	handles = uidNode.getHandles("PATCH")
-	itemExpect(t, len(handles), 1, "uidNode patch")
+	testItem(t, len(handles), 1, "uidNode patch")
 
 	uidNode.head(oneHandle)
 	handles = uidNode.getHandles("HEAD")
-	itemExpect(t, len(handles), 1, "uidNode head")
+	testItem(t, len(handles), 1, "uidNode head")
 
 	uidNode.options(oneHandle)
 	handles = uidNode.getHandles("OPTIONS")
-	itemExpect(t, len(handles), 1, "uidNode options")
+	testItem(t, len(handles), 1, "uidNode options")
 
 	uidNode.all(oneHandle)
 	handles = uidNode.getHandles("ALL")
-	itemExpect(t, len(handles), 1, "uidNode all")
+	testItem(t, len(handles), 1, "uidNode all")
 }
