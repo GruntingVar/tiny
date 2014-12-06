@@ -138,18 +138,6 @@ app.Get("/json", func(ctx *tiny.Context) {
     // }
 })
 ~~~
-也可以关闭ident和设定字符编码：
-~~~go
-ctx.Json(200, map[string]interface{}{
-    "id": 1,
-    "name": "Dart",
-}, map[string]interface{}{
-    "ident": false,
-    "charset": "gbk",
-})
-// Response:
-// {"id":1,"name":"Dart"}
-~~~
 
 ### ctx.Next()
 在一个Handler里调用Next()方法会立即执行下一个Handler方法，在执行完毕后还会继续执行这个Handler中ctx.Next()后面的代码，这样可以充分利用go语言中的defer，轻松写出有用的路由中间件Handler。

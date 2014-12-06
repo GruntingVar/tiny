@@ -59,7 +59,7 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		handlers = append(tiny.middlewares, tiny.notFoundHandler)
 	}
 
-	ctx := &Context{r, rw, data, make(map[string]interface{}), handlers, 0}
+	ctx := &Context{r, rw, data, make(map[string]interface{}), defaultCharset, handlers, 0}
 
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {

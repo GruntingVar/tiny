@@ -17,6 +17,7 @@ type Context struct {
 	Res     http.ResponseWriter
 	Params  map[string]string      // 可获取路由中的参数，如"/users/:id"，可用ctx.Params["id"]获取id
 	Data    map[string]interface{} // 用于中间件的数据传输
+	Charset string                 // Content-Type中的charset，在创建Context实例时会默认设为"UTF-8"，可在调用Text()、Json()之类的方法前更改
 	handles []Handler
 	index   int
 }
@@ -31,53 +32,18 @@ func (ctx *Context) Next() {
 
 // 向响应写入文本，并设置状态码
 func (ctx *Context) Text(status int, text string) {
-	ctx.Res.Header().Set(contentType, appendCharset(contentText, defaultCharset))
+	ctx.Res.Header().Set(contentType, appendCharset(contentText, ctx.Charset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write([]byte(text))
 }
 
 // 向响应写入JSON对象，并设置状态码
-//
-// status 响应状态码
-//
-// v 需要转换为Json对象的数据
-//
-// configs支持如下设置：
-// 	map[string]interface{}{
-// 		"indent": false, // 是否缩进，如果设为false，则关闭缩进
-// 		"charset": "gbk", // 设置编码，默认为UTF-8
-// 	}
-func (ctx *Context) Json(status int, v interface{}, configs ...map[string]interface{}) error {
-
-	indent := true
-	charset := defaultCharset
-
-	if len(configs) == 1 {
-		for _, config := range configs {
-			if config["indent"].(bool) == false {
-				indent = false
-			}
-			if config["charset"] != nil {
-				charset = config["charset"].(string)
-			}
-		}
+func (ctx *Context) Json(status int, v interface{}) error {
+	result, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
 	}
-
-	var result []byte
-	var err error
-	if indent == true {
-		result, err = json.MarshalIndent(v, "", "  ")
-		if err != nil {
-			return err
-		}
-	} else {
-		result, err = json.Marshal(v)
-		if err != nil {
-			return err
-		}
-	}
-
-	ctx.Res.Header().Set(contentType, appendCharset(contentJSON, charset))
+	ctx.Res.Header().Set(contentType, appendCharset(contentJSON, ctx.Charset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write(result)
 	return nil
