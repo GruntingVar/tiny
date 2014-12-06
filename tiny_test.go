@@ -129,45 +129,31 @@ func Test_Tiny_Rest(t *testing.T) {
 
 	req, res := createReqRes("POST", "/users")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "POST")
 
 	req, res = createReqRes("GET", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "GET")
 
 	req, res = createReqRes("PUT", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "PUT")
 
 	req, res = createReqRes("PATCH", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "PATCH")
 
 	req, res = createReqRes("DELETE", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "DELETE")
 
 	req, res = createReqRes("HEAD", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "HEAD")
 
 	req, res = createReqRes("OPTIONS", "/users/123")
 	app.ServeHTTP(res, req)
-	if res.Code != 200 {
-		t.Fail()
-	}
+	testItem(t, res.Code, 200, "OPTIONS")
 }
 
 func Test_Tiny_AllMethod(t *testing.T) {

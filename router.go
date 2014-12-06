@@ -7,55 +7,55 @@ import (
 type Handler func(*Context)
 
 type methodHandler struct {
-	handles map[string][]Handler
+	handlers map[string][]Handler
 }
 
 func newMethodHandler() methodHandler {
 	return methodHandler{make(map[string][]Handler)}
 }
 
-func (mh methodHandler) getHandles(method string) []Handler {
-	if mh.handles[method] != nil {
-		return mh.handles[method]
+func (mh methodHandler) getHandlers(method string) []Handler {
+	if mh.handlers[method] != nil {
+		return mh.handlers[method]
 	} else {
-		return mh.handles["ALL"]
+		return mh.handlers["ALL"]
 	}
 }
 
-func (mh methodHandler) addHandles(method string, handles []Handler) {
-	mh.handles[method] = append(mh.handles[method], handles...)
+func (mh methodHandler) addHandlers(method string, handlers []Handler) {
+	mh.handlers[method] = append(mh.handlers[method], handlers...)
 }
 
-func (mh methodHandler) post(handles []Handler) {
-	mh.addHandles("POST", handles)
+func (mh methodHandler) post(handlers []Handler) {
+	mh.addHandlers("POST", handlers)
 }
 
-func (mh methodHandler) get(handles []Handler) {
-	mh.addHandles("GET", handles)
+func (mh methodHandler) get(handlers []Handler) {
+	mh.addHandlers("GET", handlers)
 }
 
-func (mh methodHandler) put(handles []Handler) {
-	mh.addHandles("PUT", handles)
+func (mh methodHandler) put(handlers []Handler) {
+	mh.addHandlers("PUT", handlers)
 }
 
-func (mh methodHandler) patch(handles []Handler) {
-	mh.addHandles("PATCH", handles)
+func (mh methodHandler) patch(handlers []Handler) {
+	mh.addHandlers("PATCH", handlers)
 }
 
-func (mh methodHandler) delete(handles []Handler) {
-	mh.addHandles("DELETE", handles)
+func (mh methodHandler) delete(handlers []Handler) {
+	mh.addHandlers("DELETE", handlers)
 }
 
-func (mh methodHandler) head(handles []Handler) {
-	mh.addHandles("HEAD", handles)
+func (mh methodHandler) head(handlers []Handler) {
+	mh.addHandlers("HEAD", handlers)
 }
 
-func (mh methodHandler) options(handles []Handler) {
-	mh.addHandles("OPTIONS", handles)
+func (mh methodHandler) options(handlers []Handler) {
+	mh.addHandlers("OPTIONS", handlers)
 }
 
-func (mh methodHandler) all(handles []Handler) {
-	mh.addHandles("ALL", handles)
+func (mh methodHandler) all(handlers []Handler) {
+	mh.addHandlers("ALL", handlers)
 }
 
 // 路由节点，存储路径名、类型、处理方法和子节点

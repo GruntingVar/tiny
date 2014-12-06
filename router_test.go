@@ -57,34 +57,34 @@ func Test_Router_Method(t *testing.T) {
 	uidNode := root.addUrl("/users/:id")
 
 	testNode.get(oneHandle)
-	handles := testNode.getHandles("GET")
-	testItem(t, len(handles), 1, "testNode get")
+	handlers := testNode.getHandlers("GET")
+	testItem(t, len(handlers), 1, "testNode get")
 
 	uidNode.post(oneHandle)
-	handles = uidNode.getHandles("POST")
-	testItem(t, len(handles), 1, "uidNode post")
+	handlers = uidNode.getHandlers("POST")
+	testItem(t, len(handlers), 1, "uidNode post")
 
 	uidNode.put(twoHandles)
-	handles = uidNode.getHandles("PUT")
-	testItem(t, len(handles), 2, "uidNode put")
+	handlers = uidNode.getHandlers("PUT")
+	testItem(t, len(handlers), 2, "uidNode put")
 
 	uidNode.delete(oneHandle)
-	handles = uidNode.getHandles("DELETE")
-	testItem(t, len(handles), 1, "uidNode delete")
+	handlers = uidNode.getHandlers("DELETE")
+	testItem(t, len(handlers), 1, "uidNode delete")
 
 	uidNode.patch(oneHandle)
-	handles = uidNode.getHandles("PATCH")
-	testItem(t, len(handles), 1, "uidNode patch")
+	handlers = uidNode.getHandlers("PATCH")
+	testItem(t, len(handlers), 1, "uidNode patch")
 
 	uidNode.head(oneHandle)
-	handles = uidNode.getHandles("HEAD")
-	testItem(t, len(handles), 1, "uidNode head")
+	handlers = uidNode.getHandlers("HEAD")
+	testItem(t, len(handlers), 1, "uidNode head")
 
 	uidNode.options(oneHandle)
-	handles = uidNode.getHandles("OPTIONS")
-	testItem(t, len(handles), 1, "uidNode options")
+	handlers = uidNode.getHandlers("OPTIONS")
+	testItem(t, len(handlers), 1, "uidNode options")
 
 	uidNode.all(oneHandle)
-	handles = uidNode.getHandles("ALL")
-	testItem(t, len(handles), 1, "uidNode all")
+	handlers = uidNode.getHandlers("ALL")
+	testItem(t, len(handlers), 1, "uidNode all")
 }

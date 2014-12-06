@@ -52,14 +52,23 @@ func New() *Tiny {
 func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	found, node, data := tiny.root.findUrl(r.URL.Path)
 
-	var handlers []Handler
-	if found == true {
-		handlers = append(tiny.middlewares, node.getHandles(strings.ToUpper(r.Method))...)
-	} else {
-		handlers = append(tiny.middlewares, tiny.notFoundHandler)
+	ctx := &Context{
+		Req:             r,
+		Res:             rw,
+		Params:          data,
+		Data:            make(map[string]interface{}),
+		Charset:         defaultCharset,
+		middlewares:     tiny.middlewares,
+		middlewareIndex: 0,
+		handlersIndex:   0,
+		isMatch:         found,
+		currentHandler:  "middleware",
 	}
-
-	ctx := &Context{r, rw, data, make(map[string]interface{}), defaultCharset, handlers, 0}
+	if found == true {
+		ctx.handlers = node.getHandlers(strings.ToUpper(r.Method))
+	} else {
+		ctx.notfoundHandler = tiny.notFoundHandler
+	}
 
 	defer func(ctx *Context) {
 		if err := recover(); err != nil {
@@ -68,7 +77,13 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 	}(ctx)
 
-	handlers[0](ctx)
+	if len(ctx.middlewares) > 0 {
+		ctx.middlewares[0](ctx)
+	} else {
+		ctx.currentHandler = "route"
+		ctx.handlers[0](ctx)
+	}
+
 }
 
 // 监听端口，提供HTTP服务

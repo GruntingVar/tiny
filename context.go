@@ -13,20 +13,43 @@ const (
 )
 
 type Context struct {
-	Req     *http.Request
-	Res     http.ResponseWriter
-	Params  map[string]string      // 可获取路由中的参数，如"/users/:id"，可用ctx.Params["id"]获取id
-	Data    map[string]interface{} // 用于中间件的数据传输
-	Charset string                 // Content-Type中的charset，在创建Context实例时会默认设为"UTF-8"，可在调用Text()、Json()之类的方法前更改
-	handles []Handler
-	index   int
+	Req             *http.Request
+	Res             http.ResponseWriter
+	Params          map[string]string      // 可获取路由中的参数，如"/users/:id"，可用ctx.Params["id"]获取id
+	Data            map[string]interface{} // 用于中间件的数据传输
+	Charset         string                 // Content-Type中的charset，在创建Context实例时会默认设为"UTF-8"，可在调用Text()、Json()之类的方法前更改
+	middlewares     []Handler              // 中间件
+	handlers        []Handler              // 路由处理的handler
+	notfoundHandler Handler                // 没有匹配到路由的handler
+	middlewareIndex int
+	handlersIndex   int
+	isMatch         bool
+	currentHandler  string // "middleware", "route" or "notfound", 目前在使用的handlers
 }
 
 // 立即执行下一个handlers
 func (ctx *Context) Next() {
-	ctx.index++
-	if ctx.index < len(ctx.handles) {
-		ctx.handles[ctx.index](ctx)
+	switch ctx.currentHandler {
+	case "middleware":
+		ctx.middlewareIndex++
+		if ctx.middlewareIndex < len(ctx.middlewares) {
+			ctx.middlewares[ctx.middlewareIndex](ctx)
+		} else {
+			if ctx.isMatch == true {
+				ctx.currentHandler = "route"
+				ctx.handlers[ctx.handlersIndex](ctx)
+			} else {
+				ctx.currentHandler = "notfound"
+				ctx.notfoundHandler(ctx)
+			}
+		}
+	case "route":
+		ctx.handlersIndex++
+		if ctx.handlersIndex < len(ctx.handlers) {
+			ctx.handlers[ctx.handlersIndex](ctx)
+		}
+	case "notfound":
+		ctx.notfoundHandler(ctx)
 	}
 }
 
