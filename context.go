@@ -12,11 +12,6 @@ const (
 	defaultCharset = "UTF-8"
 )
 
-// Context是tiny的灵魂，集多种功能于一身。
-// 它存储了http.Request,http.ResponseWriter这两个基本的对象，这是HTTP的基础；
-// 它的Params属性提供了路由参数，Data属性则可以使得中间件之间可以传输数据；
-// 它提供在响应返回文本、JSON的方法，以后会支持更多的媒体类型；
-// 更重的是，它的Next()方法让中间件变得非常灵活。
 type Context struct {
 	Req     *http.Request
 	Res     http.ResponseWriter
@@ -26,7 +21,7 @@ type Context struct {
 	index   int
 }
 
-// 执行下一个Handler
+// 立即执行下一个handlers
 func (ctx *Context) Next() {
 	ctx.index++
 	if ctx.index < len(ctx.handles) {
@@ -34,12 +29,24 @@ func (ctx *Context) Next() {
 	}
 }
 
+// 向响应写入文本，并设置状态码
 func (ctx *Context) Text(status int, text string) {
 	ctx.Res.Header().Set(contentType, appendCharset(contentText, defaultCharset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write([]byte(text))
 }
 
+// 向响应写入JSON对象，并设置状态码
+//
+// status 响应状态码
+//
+// v 需要转换为Json对象的数据
+//
+// configs支持如下设置：
+// 	map[string]interface{}{
+// 		"indent": false, // 是否缩进，如果设为false，则关闭缩进
+// 		"charset": "gbk", // 设置编码，默认为UTF-8
+// 	}
 func (ctx *Context) Json(status int, v interface{}, configs ...map[string]interface{}) error {
 
 	indent := true

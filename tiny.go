@@ -72,12 +72,20 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 // 监听端口，提供HTTP服务
+//
+// 参数port表示要监听的端口号
 func (tiny *Tiny) Run(port string) {
 	log.Println("Tiny is listening on", port)
 	log.Fatal(http.ListenAndServe(":"+port, tiny))
 }
 
 // 添加中间件
+//
+// 示例：
+// 	app.Use(func(ctx *tiny.Context) {
+// 		// do something
+// 		ctx.Next()
+// 	})
 func (tiny *Tiny) Use(h Handler) {
 	tiny.middlewares = append(tiny.middlewares, h)
 }
@@ -93,6 +101,12 @@ func (tiny *Tiny) PanicHandler(h Handler) {
 }
 
 // 添加处理该路由POST请求的handlers
+//
+// 示例：
+// 	app.Post("/users", func(ctx *tiny.Context) {
+// 		// do something
+// 	})
+// 	app.Post("/blogs", h1, h2, h3)
 func (tiny *Tiny) Post(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.post(handlers)
