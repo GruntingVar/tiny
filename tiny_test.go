@@ -108,7 +108,7 @@ func createComplexServer() *Tiny {
 	return app
 }
 
-func Test_SingleServer(t *testing.T) {
+func Test_Tiny_SingleServer(t *testing.T) {
 	app := New()
 	app.Get("/", func(ctx *Context) {
 		ctx.Res.WriteHeader(200)
@@ -118,7 +118,12 @@ func Test_SingleServer(t *testing.T) {
 	expect(t, res.Code, 200)
 }
 
-func Test_Rest(t *testing.T) {
+func Test_Tiny_Run(t *testing.T) {
+	app := New()
+	go app.Run("3000")
+}
+
+func Test_Tiny_Rest(t *testing.T) {
 	app := New()
 	createRestServer(app, "users")
 
@@ -165,7 +170,7 @@ func Test_Rest(t *testing.T) {
 	}
 }
 
-func Test_AllMethod(t *testing.T) {
+func Test_Tiny_AllMethod(t *testing.T) {
 	app := createComplexServer()
 
 	req, res := createReqRes("POST", "/all")
@@ -211,7 +216,7 @@ func Test_AllMethod(t *testing.T) {
 	}
 }
 
-func Test_MiddleWare(t *testing.T) {
+func Test_Tiny_MiddleWare(t *testing.T) {
 	app := createComplexServer()
 
 	jsonData := `{
@@ -223,7 +228,7 @@ func Test_MiddleWare(t *testing.T) {
 	expect(t, res.Body.String(), jsonData)
 }
 
-func Test_Params(t *testing.T) {
+func Test_Tiny_Params(t *testing.T) {
 	app := createComplexServer()
 
 	paramData := `{
@@ -235,7 +240,7 @@ func Test_Params(t *testing.T) {
 	expect(t, res.Body.String(), paramData)
 }
 
-func Test_DefaultHandler(t *testing.T) {
+func Test_Tiny_DefaultHandler(t *testing.T) {
 	app := createComplexServer()
 
 	req, res := createReqRes("GET", "/not/exists")
@@ -247,7 +252,7 @@ func Test_DefaultHandler(t *testing.T) {
 	testItem(t, res.Code, 500, "get panic path")
 }
 
-func Test_CustomHandler(t *testing.T) {
+func Test_Tiny_CustomHandler(t *testing.T) {
 	app := createComplexServer()
 
 	app.NotFound(func(ctx *Context) {
@@ -269,9 +274,30 @@ func Test_CustomHandler(t *testing.T) {
 	testItem(t, res.Body.String(), "don't worry", "get panic path")
 }
 
-func Test_Handlers(t *testing.T) {
+func Test_Tiny_Handlers(t *testing.T) {
 	app := createComplexServer()
 	req, res := createReqRes("GET", "/multi")
 	app.ServeHTTP(res, req)
 	expect(t, res.Code, 200)
+}
+
+func Test_Tiny_Text(t *testing.T) {
+	app := createComplexServer()
+	req, res := createReqRes("GET", "/text")
+	app.ServeHTTP(res, req)
+	expect(t, res.Code, 200)
+	expect(t, res.Body.String(), "text")
+}
+
+func Test_Tiny_Json(t *testing.T) {
+	app := createComplexServer()
+	req, res := createReqRes("GET", "/json")
+	app.ServeHTTP(res, req)
+
+	jsonData := `{
+  "data": "jsonData",
+  "name": "json"
+}`
+	expect(t, res.Code, 200)
+	expect(t, res.Body.String(), jsonData)
 }

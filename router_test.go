@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_AddAndFind(t *testing.T) {
+func Test_Router_AddAndFind(t *testing.T) {
 	root := createRoot()
 
 	node1 := root.addUrl("/path1")
@@ -47,7 +47,7 @@ func Test_AddAndFind(t *testing.T) {
 	testItem(t, node, node6, "find /")
 }
 
-func Test_Method(t *testing.T) {
+func Test_Router_Method(t *testing.T) {
 	handle := func(ctx *Context) {}
 	oneHandle := []Handler{handle}
 	twoHandles := []Handler{handle, handle}

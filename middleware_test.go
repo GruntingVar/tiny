@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_Gzip(t *testing.T) {
+func Test_MiddleWare_Gzip(t *testing.T) {
 	var str string
 	for i := 0; i < 1000; i++ {
 		str += "a"

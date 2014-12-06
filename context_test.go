@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_Text(t *testing.T) {
+func Test_Context_Text(t *testing.T) {
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/test", nil)
 	ctx := &Context{req, res, make(map[string]string), make(map[string]interface{}), defaultCharset, []Handler{}, 0}
@@ -16,7 +16,7 @@ func Test_Text(t *testing.T) {
 	expect(t, res.Body.String(), "hello,world")
 }
 
-func Test_Json(t *testing.T) {
+func Test_Context_Json(t *testing.T) {
 	jsonTemplate := `{
   "id": 1,
   "name": "test"
