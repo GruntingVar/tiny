@@ -58,13 +58,15 @@ func (mh methodHandler) all(handles []Handler) {
 	mh.addHandles("ALL", handles)
 }
 
+// 路由节点，存储路径名、类型、处理方法和子节点
 type routeNode struct {
-	name string
-	kind string
-	methodHandler
-	subNodes []*routeNode
+	name          string       // 节点名称
+	kind          string       // 节点类型，可以是path, param
+	methodHandler              // 处理该节点的handler
+	subNodes      []*routeNode // 子节点
 }
 
+// 递归查找
 func (rn *routeNode) find(paths []string, data map[string]string) (found bool, node *routeNode) {
 	node = &routeNode{}
 	found = false
@@ -93,6 +95,8 @@ func (rn *routeNode) find(paths []string, data map[string]string) (found bool, n
 	return
 }
 
+// 从该节点中寻找url对应的节点，url应该以"/"开头，例如"/test"、"/users/1"，该节点看作是根节点，从子节点中寻找匹配的节点。
+// 如果返回的found为true，则node为匹配到的节点，data为匹配过程中获取到的参数
 func (rn *routeNode) findUrl(url string) (found bool, node *routeNode, data map[string]string) {
 	paths := strings.Split(url, "/")
 	data = make(map[string]string)
@@ -100,6 +104,7 @@ func (rn *routeNode) findUrl(url string) (found bool, node *routeNode, data map[
 	return
 }
 
+// 递归创建
 func (rn *routeNode) add(paths []string) (node *routeNode) {
 	found := false
 
@@ -130,12 +135,14 @@ func (rn *routeNode) add(paths []string) (node *routeNode) {
 	return
 }
 
+// 在该节点下添加并返回与url对应的节点，如果节点已存在，则直接返回现有的节点
 func (rn *routeNode) addUrl(url string) (node *routeNode) {
 	paths := strings.Split(url, "/")
 	node = rn.add(paths[1:])
 	return
 }
 
+// 创建根节点，只是为了让逻辑更清晰的虚拟节点，没有实际的作用
 func createRoot() *routeNode {
 	return &routeNode{"root", "root", newMethodHandler(), []*routeNode{}}
 }

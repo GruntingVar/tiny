@@ -1,3 +1,22 @@
+// tiny是一个高效、易用、轻量级的用于构建RESTful API Server的框架。
+//
+// 使用示例：
+//
+//	package main
+//
+//	import "github.com/GruntingVar/tiny"
+//
+//	func main() {
+//		app := tiny.New()
+//		app.Get("/", func(ctx *tiny.Context) {
+//			ctx.Text(200, "Hello, world!")
+//		})
+//		app.Run("3000")
+//	}
+//
+// 详细文档请访问 https://github.com/GruntingVar/tiny
+//
+
 package tiny
 
 import (
@@ -14,13 +33,15 @@ var defaultPanicHandler = func(ctx *Context) {
 	ctx.Text(500, "Internal Server Error")
 }
 
+// Tiny实现了http.Handler接口，提供HTTP服务
 type Tiny struct {
 	root            *routeNode
-	middlewares     []Handler // 在进行路由匹配之前执行的handle
+	middlewares     []Handler
 	notFoundHandler Handler
 	panicHandler    Handler
 }
 
+// 创建并返回一个Tiny实例
 func New() *Tiny {
 	return &Tiny{
 		root:            createRoot(),
@@ -52,19 +73,23 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	handlers[0](ctx)
 }
 
+// 监听端口，提供HTTP服务
 func (tiny *Tiny) Run(port string) {
 	log.Println("Tiny is listening on", port)
 	log.Fatal(http.ListenAndServe(":"+port, tiny))
 }
 
+// 添加中间件
 func (tiny *Tiny) Use(h Handler) {
 	tiny.middlewares = append(tiny.middlewares, h)
 }
 
+// 设置路由匹配失败时的Handler。如果不设置，则在匹配失败时返回404状态码。
 func (tiny *Tiny) NotFound(h Handler) {
 	tiny.notFoundHandler = h
 }
 
+// 设置处理panic的Handler。如果不设置，则在某个路由发生没有recover的panic时，返回500状态码。
 func (tiny *Tiny) PanicHandler(h Handler) {
 	tiny.panicHandler = h
 }
