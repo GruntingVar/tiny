@@ -16,6 +16,7 @@ func (grw gzipResponseWriter) Write(b []byte) (int, error) {
 	return grw.Writer.Write(b)
 }
 
+// Gzip中间件
 func Gzip(ctx *Context) {
 	var writer http.ResponseWriter
 	if !strings.Contains(ctx.Req.Header.Get("Accept-Encoding"), "gzip") {

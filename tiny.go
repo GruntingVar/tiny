@@ -15,8 +15,6 @@
 //	}
 //
 // 详细文档请访问 https://github.com/GruntingVar/tiny
-//
-
 package tiny
 
 import (
@@ -94,41 +92,49 @@ func (tiny *Tiny) PanicHandler(h Handler) {
 	tiny.panicHandler = h
 }
 
+// 添加处理该路由POST请求的handlers
 func (tiny *Tiny) Post(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.post(handlers)
 }
 
+// 添加处理该路由GET请求的handlers
 func (tiny *Tiny) Get(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.get(handlers)
 }
 
+// 添加处理该路由PUT请求的handlers
 func (tiny *Tiny) Put(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.put(handlers)
 }
 
+// 添加处理该路由PATCH请求的handlers
 func (tiny *Tiny) Patch(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.patch(handlers)
 }
 
+// 添加处理该路由DELETE请求的handlers
 func (tiny *Tiny) Delete(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.delete(handlers)
 }
 
+// 添加处理该路由HEAD请求的handlers
 func (tiny *Tiny) Head(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.head(handlers)
 }
 
+// 添加处理该路由OPTIONS请求的handlers
 func (tiny *Tiny) Options(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.options(handlers)
 }
 
+// 添加处理该路由所有请求的handlers
 func (tiny *Tiny) All(url string, handlers ...Handler) {
 	node := tiny.root.addUrl(url)
 	node.all(handlers)
