@@ -18,6 +18,7 @@
 package tiny
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -31,12 +32,17 @@ var defaultPanicHandler = func(ctx *Context) {
 	ctx.Text(500, "Internal Server Error")
 }
 
+var defaultErrorHandler = func(ctx *Context) {
+	ctx.Text(500, "Internal Server Error")
+}
+
 // Tiny实现了http.Handler接口，提供HTTP服务
 type Tiny struct {
 	root            *routeNode
 	middlewares     []Handler
 	notFoundHandler Handler
 	panicHandler    Handler
+	errorHandler    Handler
 }
 
 // 创建并返回一个Tiny实例
@@ -46,6 +52,7 @@ func New() *Tiny {
 		middlewares:     []Handler{},
 		notFoundHandler: defaultNotFoundHandler,
 		panicHandler:    defaultPanicHandler,
+		errorHandler:    defaultErrorHandler,
 	}
 }
 
@@ -63,6 +70,7 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		handlersIndex:   0,
 		isMatch:         found,
 		currentHandler:  "middleware",
+		errorHandler:    tiny.errorHandler,
 	}
 	if found == true {
 		ctx.handlers = node.getHandlers(strings.ToUpper(r.Method))
@@ -71,8 +79,15 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func(ctx *Context) {
-		if err := recover(); err != nil {
-			ctx.Data["error"] = err
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				ctx.PanicMsg = errors.New(x)
+			case error:
+				ctx.PanicMsg = x
+			default:
+				ctx.PanicMsg = errors.New("Unknown panic")
+			}
 			tiny.panicHandler(ctx)
 		}
 	}(ctx)
@@ -80,8 +95,13 @@ func (tiny *Tiny) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if len(ctx.middlewares) > 0 {
 		ctx.middlewares[0](ctx)
 	} else {
-		ctx.currentHandler = "route"
-		ctx.handlers[0](ctx)
+		if found == true {
+			ctx.currentHandler = "route"
+			ctx.handlers[0](ctx)
+		} else {
+			ctx.notfoundHandler(ctx)
+		}
+
 	}
 
 }
@@ -113,6 +133,11 @@ func (tiny *Tiny) NotFound(h Handler) {
 // 设置处理panic的Handler。如果不设置，则在某个路由发生没有recover的panic时，返回500状态码。
 func (tiny *Tiny) PanicHandler(h Handler) {
 	tiny.panicHandler = h
+}
+
+// 设置处理错误的Handler。如果不设置，使用Context的Error方法或是Text、Json方法发生错误时会返回500状态码。
+func (tiny *Tiny) ErrorHandler(h Handler) {
+	tiny.errorHandler = h
 }
 
 // 添加处理该路由POST请求的handlers

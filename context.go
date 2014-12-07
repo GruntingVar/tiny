@@ -18,9 +18,12 @@ type Context struct {
 	Params          map[string]string      // 可获取路由中的参数，如"/users/:id"，可用ctx.Params["id"]获取id
 	Data            map[string]interface{} // 用于中间件的数据传输
 	Charset         string                 // Content-Type中的charset，在创建Context实例时会默认设为"UTF-8"，可在调用Text()、Json()之类的方法前更改
-	middlewares     []Handler              // 中间件
-	handlers        []Handler              // 路由处理的handler
-	notfoundHandler Handler                // 没有匹配到路由的handler
+	PanicMsg        error
+	ErrorMsg        error
+	middlewares     []Handler // 中间件
+	handlers        []Handler // 路由处理的handler
+	notfoundHandler Handler   // 没有匹配到路由的handler
+	errorHandler    Handler   // 调用Error方法或是使用Text、Json等方法发生错误时会进入该Handler
 	middlewareIndex int
 	handlersIndex   int
 	isMatch         bool
@@ -53,6 +56,11 @@ func (ctx *Context) Next() {
 	}
 }
 
+func (ctx *Context) Error(err error) {
+	ctx.ErrorMsg = err
+	ctx.errorHandler(ctx)
+}
+
 // 向响应写入文本，并设置状态码
 func (ctx *Context) Text(status int, text string) {
 	ctx.Res.Header().Set(contentType, appendCharset(contentText, ctx.Charset))
@@ -61,15 +69,16 @@ func (ctx *Context) Text(status int, text string) {
 }
 
 // 向响应写入JSON对象，并设置状态码
-func (ctx *Context) Json(status int, v interface{}) error {
+func (ctx *Context) Json(status int, v interface{}) {
 	result, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return err
+		ctx.Error(err)
+		return
 	}
 	ctx.Res.Header().Set(contentType, appendCharset(contentJSON, ctx.Charset))
 	ctx.Res.WriteHeader(status)
 	ctx.Res.Write(result)
-	return nil
+	return
 }
 
 func appendCharset(content string, charset string) string {

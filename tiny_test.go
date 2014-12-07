@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -98,7 +99,11 @@ func createComplexServer() *Tiny {
 	})
 
 	app.Get("/panic", func(ctx *Context) {
-		panic("panic")
+		panic("don't worry")
+	})
+
+	app.Get("/error", func(ctx *Context) {
+		ctx.Error(errors.New("ctx error!"))
 	})
 
 	app.Get("/deep/:did/complex/:cid/path", func(ctx *Context) {
@@ -236,6 +241,11 @@ func Test_Tiny_DefaultHandler(t *testing.T) {
 	req, res = createReqRes("GET", "/panic")
 	app.ServeHTTP(res, req)
 	testItem(t, res.Code, 500, "get panic path")
+
+	req, res = createReqRes("GET", "/error")
+	app.ServeHTTP(res, req)
+	testItem(t, res.Code, 500, "get error path")
+	testItem(t, res.Body.String(), "Internal Server Error", "get error path")
 }
 
 func Test_Tiny_CustomHandler(t *testing.T) {
@@ -246,7 +256,11 @@ func Test_Tiny_CustomHandler(t *testing.T) {
 	})
 
 	app.PanicHandler(func(ctx *Context) {
-		ctx.Text(200, "don't worry")
+		ctx.Text(200, ctx.PanicMsg.Error())
+	})
+
+	app.ErrorHandler(func(ctx *Context) {
+		ctx.Text(200, ctx.ErrorMsg.Error())
 	})
 
 	req, res := createReqRes("GET", "/not/exists")
@@ -258,6 +272,33 @@ func Test_Tiny_CustomHandler(t *testing.T) {
 	app.ServeHTTP(res, req)
 	testItem(t, res.Code, 200, "get panic path")
 	testItem(t, res.Body.String(), "don't worry", "get panic path")
+
+	req, res = createReqRes("GET", "/error")
+	app.ServeHTTP(res, req)
+	testItem(t, res.Code, 200, "get error path")
+	testItem(t, res.Body.String(), "ctx error!", "get error path")
+}
+
+func Test_Tiny_DefaultHandlerWithoutMiddleware(t *testing.T) {
+	app := New()
+	app.Get("/panic", func(ctx *Context) {
+		panic("panic")
+	})
+	app.Get("/error", func(ctx *Context) {
+		ctx.Error(errors.New("error"))
+	})
+
+	req, res := createReqRes("GET", "/not/exists")
+	app.ServeHTTP(res, req)
+	testItem(t, res.Code, 404, "get not exists path")
+
+	req, res = createReqRes("GET", "/panic")
+	app.ServeHTTP(res, req)
+	testItem(t, res.Code, 500, "get panic path")
+
+	req, res = createReqRes("GET", "/error")
+	app.ServeHTTP(res, req)
+	testItem(t, res.Code, 500, "get error path")
 }
 
 func Test_Tiny_Handlers(t *testing.T) {
