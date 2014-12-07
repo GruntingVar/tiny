@@ -27,7 +27,7 @@ type Context struct {
 	middlewareIndex int
 	handlersIndex   int
 	isMatch         bool
-	currentHandler  string // "middleware", "route" or "notfound", 目前在使用的handlers
+	currentHandler  string // "middleware" or "route", 目前在使用的handlers
 }
 
 // 立即执行下一个handlers
@@ -42,7 +42,6 @@ func (ctx *Context) Next() {
 				ctx.currentHandler = "route"
 				ctx.handlers[ctx.handlersIndex](ctx)
 			} else {
-				ctx.currentHandler = "notfound"
 				ctx.notfoundHandler(ctx)
 			}
 		}
@@ -51,8 +50,6 @@ func (ctx *Context) Next() {
 		if ctx.handlersIndex < len(ctx.handlers) {
 			ctx.handlers[ctx.handlersIndex](ctx)
 		}
-	case "notfound":
-		ctx.notfoundHandler(ctx)
 	}
 }
 
