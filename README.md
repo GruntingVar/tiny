@@ -1,7 +1,9 @@
-# Tiny
+# Tiny (现已废弃，不再维护)
 [![wercker status](https://app.wercker.com/status/6df44e4c942054978d3ee6998a31c8ed/s "wercker status")](https://app.wercker.com/project/bykey/6df44e4c942054978d3ee6998a31c8ed)
 [![Coverage](http://gocover.io/_badge/github.com/GruntingVar/tiny)](http://gocover.io/github.com/GruntingVar/tiny)
 [![GoDoc](https://godoc.org/github.com/GruntingVar/tiny?status.png)](https://godoc.org/github.com/GruntingVar/tiny)
+
+**现在已经中止开发此框架。因为没有公开发布过，所以可以中止，不移除项目，用作留念。中止原因：因为对golang了解不够，在开发这个框架时犯了一些设计上的错误，所以放弃，准备开发一个更好的框架。**
 
 Tiny是一个采用Golang编写的用于构建RESTful API Server的框架，主要设计灵感来源于[Express](http://expressjs.com/)。Tiny的目标是高效、易用。
 
